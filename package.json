@@ -1,0 +1,9 @@
+{
+  "name": "telangana-rta-registrations-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive Telangana RTA registrations dashboard with spreadsheet upload support.",
+  "scripts": {
+    "start": "python3 -m http.server 8765"
+  }
+}

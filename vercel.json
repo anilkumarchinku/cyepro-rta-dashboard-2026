@@ -1,0 +1,11 @@
+{
+  "name": "telangana-rta-registrations-dashboard",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/outputs/telangana_analysis/PowerBI_Build_Pack/Dashboard_Single_Screen_Mockup.html"
+    }
+  ]
+}
