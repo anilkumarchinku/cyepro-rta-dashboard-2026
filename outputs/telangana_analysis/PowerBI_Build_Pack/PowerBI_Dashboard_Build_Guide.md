@@ -26,6 +26,19 @@ Import these CSV files:
 - Fuel_Type_Dim.csv
 - Office_Dim.csv
 
+## Interactive Preview Upload Provision
+The HTML preview includes an **Upload Table** control in the filter rail. Other users can upload `.xlsx`, `.xls`, `.csv`, `.tsv`, or `.txt` files and the dashboard will rebuild the KPIs, filters, monthly trend, fuel mix, maker ranking, office ranking, and detail table.
+
+Best results come from a table with these columns or close alternatives:
+- Fuel Type or Fuel
+- Maker, Manufacturer, Make, Brand, or OEM
+- Office, RTA Office, Location, District, City, or Region
+- Office Code or Code
+- Jan, Feb, Mar, Apr, May, Jun
+- Total, Reported Total, Registrations, Count, or Value
+
+If Total is missing, the preview calculates Total from the available numeric/month columns. If exact column names differ, the preview uses sensible text and numeric fallbacks.
+
 Create relationships:
 - Month_Dim[Month No] one-to-many to TELANGANA_PowerBI_Monthly[Month No]
 - Maker_Dim[Maker] one-to-many to TELANGANA_PowerBI_Wide[Maker]
@@ -95,10 +108,10 @@ Values: [Monthly Registrations]
 Insight: January is high, June is much lower than May.
 Use: Trend is understood immediately.
 
-### Bar Chart: Top 10 Makers
+### Bar Chart: All Makers Ranked
 Axis: Maker_Dim[Maker]
 Values: [Total Registrations]
-Filter: Top N = 10 by [Total Registrations]
+Sort: Descending by [Total Registrations]
 Insight: Shows market leaders.
 Use: Strongest comparison visual.
 
@@ -108,10 +121,10 @@ Values: [Total Registrations]
 Insight: Petrol and Petrol CNG dominate.
 Use: Share-of-whole is useful because there are only 4 fuel categories.
 
-### Bar Chart: Top Offices
+### Bar Chart: All Offices Ranked
 Axis: Office_Dim[Office]
 Values: [Total Registrations]
-Filter: Top N = 8 by [Total Registrations]
+Sort: Descending by [Total Registrations]
 Insight: Shows office concentration.
 Use: Keeps regional operations visible.
 

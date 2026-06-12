@@ -151,7 +151,8 @@
   }
 
   select,
-  button {
+  button,
+  input[type="file"] {
     width: 100%;
     min-height: 42px;
     border: 1px solid var(--line);
@@ -169,6 +170,18 @@
     border-color: var(--accent-border);
     color: var(--accent-deep);
     font-weight: 800;
+  }
+
+  input[type="file"] {
+    min-height: auto;
+    padding: 8px;
+    font-size: 10.5px;
+  }
+
+  .file-note {
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.3;
   }
 
   .insight {
@@ -647,6 +660,7 @@
         <div class="slicer-box"><label>Maker<select id="makerFilter"><option value="">All</option></select></label></div>
         <div class="slicer-box"><label>Office<select id="officeFilter"><option value="">All</option></select></label></div>
         <div class="slicer-box"><label>Office Code<select id="officeCodeFilter"><option value="">All</option></select></label></div>
+        <div class="slicer-box"><label>Upload Table<input id="tableUpload" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" /></label><div class="file-note" id="fileStatus">Default Telangana data loaded.</div></div>
         <label>Action<button id="resetFilters" type="button">Reset</button></label>
       </div>
       <div class="filter-summary" id="filterSummary">Showing all Telangana registrations.</div>
@@ -749,6 +763,7 @@
 </main>
 <div class="tooltip" id="tooltip" role="tooltip"></div>
 
+<script src="xlsx.full.min.js"></script>
 <script>
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 const colors = ["#2f80ed", "#27ae60", "#f2c94c", "#9b51e0", "#56ccf2", "#f2994a"];
@@ -761,6 +776,7 @@ const fuelColors = {
 };
 const aggregateOffice = "All Vahan4 Running Office";
 let wideRows = [];
+let datasetLabel = "Telangana source file";
 
 const el = (id) => document.getElementById(id);
 const fmt = (value) => Math.round(Number(value || 0)).toLocaleString("en-IN");
@@ -815,8 +831,96 @@ function parseCSV(text) {
   return rows.map((values) => Object.fromEntries(headers.map((h, i) => [h, values[i] ?? ""])));
 }
 
+function cleanHeader(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function toNumber(value) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  const cleaned = String(value ?? "").replace(/,/g, "").trim();
+  const parsed = Number(cleaned);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function parseMaybeNumber(value) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : NaN;
+  const cleaned = String(value ?? "").replace(/,/g, "").trim();
+  if (!cleaned) return NaN;
+  return /^-?\d+(\.\d+)?$/.test(cleaned) ? Number(cleaned) : NaN;
+}
+
+function findColumn(headers, candidates) {
+  const cleaned = new Map(headers.map((header) => [cleanHeader(header), header]));
+  for (const candidate of candidates) {
+    const found = cleaned.get(cleanHeader(candidate));
+    if (found) return found;
+  }
+  return "";
+}
+
+function mostlyNumeric(rows, header) {
+  const sample = rows.slice(0, 50).map((row) => row[header]).filter((value) => String(value ?? "").trim() !== "");
+  if (!sample.length) return false;
+  return sample.filter((value) => Number.isFinite(parseMaybeNumber(value))).length / sample.length >= 0.65;
+}
+
+function normalizeRows(rawRows) {
+  const sourceRows = rawRows.filter((row) => Object.values(row).some((value) => String(value ?? "").trim() !== ""));
+  if (!sourceRows.length) return [];
+
+  const headers = Object.keys(sourceRows[0]);
+  const fuelCol = findColumn(headers, ["Fuel Type", "Fuel Tyepe", "Fuel", "FuelType", "Fuel_Type"]);
+  const makerCol = findColumn(headers, ["Maker", "Manufacturer", "Make", "Brand", "Company", "OEM"]);
+  const officeCol = findColumn(headers, ["Office", "RTA Office", "Registering Authority", "Location", "District", "City", "Region"]);
+  const officeCodeCol = findColumn(headers, ["Office Code", "OfficeCode", "RTA Code", "Code"]);
+  const totalCol = findColumn(headers, ["Total", "Reported Total", "Registrations", "Registration Total", "No of Registrations", "Count", "Value"]);
+
+  const monthMap = {
+    Jan: findColumn(headers, ["Jan", "January"]),
+    Feb: findColumn(headers, ["Feb", "February"]),
+    Mar: findColumn(headers, ["Mar", "March"]),
+    Apr: findColumn(headers, ["Apr", "April"]),
+    May: findColumn(headers, ["May"]),
+    Jun: findColumn(headers, ["Jun", "June"]),
+  };
+
+  const mappedMonthColumns = new Set(Object.values(monthMap).filter(Boolean));
+  const numericHeaders = headers.filter((header) => mostlyNumeric(sourceRows, header));
+  const fallbackNumberColumns = numericHeaders.filter((header) => header !== totalCol && !mappedMonthColumns.has(header)).slice(0, 6);
+  months.forEach((month, index) => {
+    if (!monthMap[month]) monthMap[month] = fallbackNumberColumns[index] || "";
+  });
+
+  const textHeaders = headers.filter((header) => !numericHeaders.includes(header));
+  const fallbackMaker = makerCol || textHeaders[0] || "";
+  const fallbackFuel = fuelCol || textHeaders.find((header) => cleanHeader(header).includes("fuel")) || "";
+  const fallbackOffice = officeCol || textHeaders.find((header) => cleanHeader(header).includes("office")) || textHeaders[1] || textHeaders[0] || "";
+  const fallbackOfficeCode = officeCodeCol || textHeaders.find((header) => cleanHeader(header).includes("code")) || "";
+
+  return sourceRows.map((row, index) => {
+    const normalized = {
+      "Fuel Type": String(row[fallbackFuel] || "All").trim() || "All",
+      Maker: String(row[fallbackMaker] || "Unknown Maker").trim() || "Unknown Maker",
+      Office: String(row[fallbackOffice] || "All Offices").trim() || "All Offices",
+      "Office Code": String(row[fallbackOfficeCode] || "All").trim() || "All",
+      "Source Name": datasetLabel,
+      "Source Row": index + 1,
+    };
+    months.forEach((month) => {
+      normalized[month] = toNumber(monthMap[month] ? row[monthMap[month]] : 0);
+    });
+    normalized["Calculated Total"] = months.reduce((total, month) => total + normalized[month], 0);
+    normalized.Total = totalCol ? toNumber(row[totalCol]) : normalized["Calculated Total"];
+    normalized["Total Variance"] = normalized.Total - normalized["Calculated Total"];
+    normalized["Total Check"] = normalized["Total Variance"] === 0 ? "OK" : "Mismatch";
+    return normalized;
+  });
+}
+
 function numeric(row, key) {
-  return Number(row[key] || 0);
+  return toNumber(row[key]);
 }
 
 function activeFilters() {
@@ -1113,22 +1217,67 @@ function updateDashboard() {
   renderTable(makerItems, visualTotal);
 }
 
+function clearFilters() {
+  ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter"].forEach((id) => el(id).value = "");
+}
+
+function loadDataset(rawRows, label) {
+  datasetLabel = label || "Uploaded table";
+  wideRows = normalizeRows(rawRows);
+  clearFilters();
+  populateFilters();
+  updateDashboard();
+  el("fileStatus").textContent = `${datasetLabel}: ${fmt(wideRows.length)} rows loaded.`;
+}
+
+async function parseUploadedFile(file) {
+  const extension = file.name.split(".").pop().toLowerCase();
+  if (window.XLSX) {
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, { type: "array" });
+    const firstSheet = workbook.SheetNames[0];
+    if (!firstSheet) throw new Error("No sheet found in this file");
+    return XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { defval: "", raw: false });
+  }
+  if (["csv", "tsv", "txt"].includes(extension)) {
+    const text = await file.text();
+    if (extension === "tsv") {
+      const lines = text.split(/\r?\n/).filter(Boolean);
+      const headers = lines.shift().split("\t");
+      return lines.map((line) => Object.fromEntries(line.split("\t").map((value, index) => [headers[index], value])));
+    }
+    return parseCSV(text);
+  }
+  throw new Error("Excel support file is missing. Save this sheet as CSV and upload again.");
+}
+
+async function handleUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  try {
+    el("fileStatus").textContent = `Loading ${file.name}...`;
+    const rows = await parseUploadedFile(file);
+    loadDataset(rows, file.name);
+  } catch (error) {
+    el("fileStatus").textContent = `Upload failed: ${error.message}`;
+  }
+}
+
 async function init() {
   try {
     const csv = await fetch("TELANGANA_PowerBI_Wide.csv").then((res) => {
       if (!res.ok) throw new Error("Could not load CSV");
       return res.text();
     });
-    wideRows = parseCSV(csv);
-    populateFilters();
+    loadDataset(parseCSV(csv), "Default Telangana data");
     ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter"].forEach((id) => {
       el(id).addEventListener("change", updateDashboard);
     });
     el("resetFilters").addEventListener("click", () => {
-      ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter"].forEach((id) => el(id).value = "");
+      clearFilters();
       updateDashboard();
     });
-    updateDashboard();
+    el("tableUpload").addEventListener("change", handleUpload);
   } catch (error) {
     el("readFirst").textContent = `Could not load dashboard data: ${error.message}. Open this preview through the local server, not directly as a file.`;
   }
