@@ -1,0 +1,1157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Telangana Power BI Dashboard Preview</title>
+<style>
+  :root {
+    --page: #dfe7f1;
+    --bg: #f7f9fc;
+    --card: #ffffff;
+    --ink: #16324f;
+    --muted: #6b7280;
+    --line: #d9e2ef;
+    --soft: #e8f1fe;
+    --blue: #2f80ed;
+    --green: #27ae60;
+    --yellow: #f2c94c;
+    --purple: #9b51e0;
+    --red: #eb5757;
+    --accent: #2f80ed;
+    --accent-soft: #dbeafe;
+    --accent-deep: #1f5ea8;
+    --accent-border: #cfe3ff;
+    --shadow: 0 10px 28px rgba(22, 50, 79, .09);
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--page);
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: var(--ink);
+  }
+
+  .shell {
+    width: min(100%, 1380px);
+    margin: 0 auto;
+    padding: clamp(12px, 1.7vw, 24px);
+  }
+
+  .dashboard {
+    min-height: calc(100vh - clamp(24px, 3.4vw, 48px));
+    background: var(--bg);
+    box-shadow: 0 20px 60px rgba(22, 50, 79, .18);
+    padding: clamp(14px, 1.6vw, 22px);
+    display: grid;
+    gap: clamp(10px, 1.2vw, 14px);
+    grid-template-columns: 180px repeat(12, minmax(0, 1fr));
+    grid-template-areas:
+      "title title title title title title title title title title title title title"
+      "filters insight insight insight insight insight insight kpi1 kpi1 kpi2 kpi2 kpi3 kpi3"
+      "filters trend trend trend trend trend trend fuel fuel fuel quality quality quality"
+      "filters makers makers makers makers offices offices offices offices matrix matrix matrix matrix";
+  }
+
+  .panel,
+  .kpi,
+  .filters {
+    background: var(--card);
+    border: 1px solid rgba(217, 226, 239, .72);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  .title {
+    grid-area: title;
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(21px, 2vw, 28px);
+    line-height: 1.08;
+    letter-spacing: 0;
+  }
+
+  .subtitle {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .badge {
+    flex: 0 0 auto;
+    background: var(--accent-soft);
+    color: var(--accent-deep);
+    border: 1px solid var(--accent-border);
+    border-radius: 999px;
+    padding: 7px 11px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .filters {
+    grid-area: filters;
+    padding: 14px;
+    min-width: 0;
+  }
+
+  .filters h2,
+  .panel h2 {
+    margin: 0 0 10px;
+    font-size: 13px;
+  }
+
+  .slicer-grid {
+    display: grid;
+    gap: 10px;
+  }
+
+  label {
+    display: grid;
+    gap: 5px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 650;
+  }
+
+  .slicer-box {
+    display: grid;
+    gap: 5px;
+  }
+
+  .slicer-meta {
+    color: var(--muted);
+    font-size: 10.5px;
+    line-height: 1.25;
+  }
+
+  .slicer-meta strong {
+    color: var(--ink);
+  }
+
+  .filter-summary {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 12px;
+    background: #f8fbff;
+    border: 1px solid #e3edf8;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  select,
+  button {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fbfcfe;
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  button {
+    cursor: pointer;
+    background: var(--accent-soft);
+    border-color: var(--accent-border);
+    color: var(--accent-deep);
+    font-weight: 800;
+  }
+
+  .insight {
+    grid-area: insight;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    align-content: center;
+  }
+
+  .read-first {
+    border-left: 4px solid var(--accent);
+    padding-left: 12px;
+  }
+
+  .read-first strong {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+
+  .read-first p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .mini-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .mini {
+    background: #f8fbff;
+    border: 1px solid #e3edf8;
+    border-radius: 12px;
+    padding: 8px 10px;
+    min-width: 0;
+  }
+
+  .mini-label {
+    color: var(--muted);
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mini-value {
+    margin-top: 5px;
+    font-size: 13px;
+    font-weight: 850;
+    line-height: 1.2;
+  }
+
+  .kpi {
+    padding: 13px 15px;
+    min-height: 82px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    cursor: default;
+  }
+
+  .kpi1 { grid-area: kpi1; }
+  .kpi2 { grid-area: kpi2; }
+  .kpi3 { grid-area: kpi3; }
+
+  .kpi-label {
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .kpi-value {
+    margin-top: 8px;
+    font-size: clamp(24px, 2.35vw, 32px);
+    line-height: 1;
+    font-weight: 850;
+  }
+
+  .kpi-note {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .red { color: var(--red); }
+  .green { color: var(--green); }
+
+  .trend { grid-area: trend; }
+  .fuel { grid-area: fuel; }
+  .quality { grid-area: quality; }
+  .makers { grid-area: makers; }
+  .offices { grid-area: offices; }
+  .matrix { grid-area: matrix; }
+
+  .panel {
+    padding: 13px 15px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .chart-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .chart-head h2 { margin-bottom: 0; }
+
+  .hint {
+    color: var(--muted);
+    font-size: 11px;
+    text-align: right;
+  }
+
+  .line-chart {
+    height: 140px;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    gap: 5px;
+  }
+
+  .line-area {
+    position: relative;
+    border-left: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    min-height: 104px;
+  }
+
+  .line-area svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .month-values {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .month-values span {
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .donut-wrap {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+  }
+
+  .donut {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: var(--soft);
+    position: relative;
+  }
+
+  .donut:after {
+    content: "";
+    position: absolute;
+    inset: 27px;
+    background: var(--card);
+    border-radius: 50%;
+  }
+
+  .legend {
+    display: grid;
+    gap: 6px;
+    font-size: 10.5px;
+    max-height: 132px;
+    overflow-y: auto;
+    padding-right: 3px;
+  }
+
+  .legend-row {
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .bar-list {
+    display: grid;
+    gap: 8px;
+    max-height: 145px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .makers .bar-list,
+  .offices .bar-list {
+    max-height: min(34vh, 320px);
+  }
+
+  .bar-row {
+    display: grid;
+    grid-template-columns: minmax(92px, 1.1fr) minmax(120px, 2fr) 70px;
+    gap: 10px;
+    align-items: center;
+    font-size: 11px;
+    color: var(--muted);
+    cursor: default;
+  }
+
+  .name {
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .bar {
+    height: 13px;
+    border-radius: 999px;
+    background: var(--soft);
+    overflow: hidden;
+  }
+
+  .fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-deep));
+  }
+
+  .value {
+    color: var(--ink);
+    font-weight: 750;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .quality-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .quality-card {
+    border-radius: 12px;
+    padding: 10px;
+    border: 1px solid #f2d1d1;
+    background: #fff8f8;
+  }
+
+  .quality-card strong {
+    display: block;
+    font-size: 18px;
+    color: var(--red);
+  }
+
+  .quality-card span {
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .quality-note {
+    margin-top: 9px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .tooltip {
+    position: fixed;
+    z-index: 50;
+    max-width: 280px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, -112%);
+    background: rgba(22, 50, 79, .96);
+    color: #fff;
+    border-radius: 10px;
+    padding: 9px 11px;
+    box-shadow: 0 12px 30px rgba(22, 50, 79, .25);
+    font-size: 12px;
+    line-height: 1.35;
+    transition: opacity .12s ease;
+    white-space: pre-line;
+  }
+
+  .tooltip.show {
+    opacity: 1;
+  }
+
+  .table-wrap {
+    overflow: auto;
+    max-height: 154px;
+  }
+
+  table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  th:first-child,
+  td:first-child {
+    width: 46%;
+  }
+
+  th {
+    text-align: left;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    padding: 7px 5px;
+    font-weight: 750;
+  }
+
+  td {
+    border-bottom: 1px solid #eef3f8;
+    padding: 7px 5px;
+    overflow-wrap: anywhere;
+  }
+
+  td:not(:first-child),
+  th:not(:first-child) {
+    text-align: right;
+  }
+
+  .loading {
+    grid-area: insight;
+    padding: 16px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 1160px) {
+    .dashboard {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      grid-template-areas:
+        "title title title title title title"
+        "insight insight insight insight insight insight"
+        "filters filters filters filters filters filters"
+        "kpi1 kpi1 kpi2 kpi2 kpi3 kpi3"
+        "trend trend trend trend fuel fuel"
+        "quality quality quality offices offices offices"
+        "makers makers makers matrix matrix matrix";
+    }
+
+    .slicer-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 820px) {
+    .shell { padding: 0; }
+
+    .dashboard {
+      box-shadow: none;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        "title title"
+        "insight insight"
+        "filters filters"
+        "kpi1 kpi2"
+        "kpi3 kpi3"
+        "trend trend"
+        "fuel quality"
+        "makers makers"
+        "offices offices"
+        "matrix matrix";
+    }
+
+    .title { display: block; }
+    .badge { display: inline-block; margin-top: 8px; }
+
+    .slicer-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mini-row {
+      grid-template-columns: 1fr;
+    }
+
+    .donut-wrap {
+      grid-template-columns: 1fr;
+      justify-items: center;
+    }
+
+    .legend { width: 100%; }
+  }
+
+  @media (max-width: 560px) {
+    .dashboard {
+      min-height: 100vh;
+      padding: 14px;
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "title"
+        "insight"
+        "filters"
+        "kpi1"
+        "kpi2"
+        "kpi3"
+        "trend"
+        "fuel"
+        "quality"
+        "makers"
+        "offices"
+        "matrix";
+    }
+
+    .slicer-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .bar-row {
+      grid-template-columns: 1fr;
+      gap: 5px;
+    }
+
+    .makers .bar-list,
+    .offices .bar-list {
+      max-height: 360px;
+    }
+
+    .value { text-align: left; }
+
+    .quality-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .line-chart {
+      height: 170px;
+    }
+
+    table {
+      font-size: 10px;
+    }
+
+    th,
+    td {
+      padding: 6px 3px;
+    }
+  }
+</style>
+</head>
+<body>
+<main class="shell">
+  <section class="dashboard" aria-label="Telangana car registrations dashboard preview">
+    <header class="title">
+      <div>
+        <h1>Telangana Car Registrations Dashboard | Jan-Jun 2026</h1>
+        <div class="subtitle" id="subtitle">Loading source data...</div>
+      </div>
+      <div class="badge">Interactive Preview</div>
+    </header>
+
+    <aside class="filters" aria-label="Dashboard filters">
+      <h2>Filters</h2>
+      <div class="slicer-grid">
+        <div class="slicer-box"><label>Fuel Type<select id="fuelFilter"><option value="">All</option></select></label></div>
+        <div class="slicer-box"><label>Maker<select id="makerFilter"><option value="">All</option></select></label></div>
+        <div class="slicer-box"><label>Office<select id="officeFilter"><option value="">All</option></select></label></div>
+        <div class="slicer-box"><label>Office Code<select id="officeCodeFilter"><option value="">All</option></select></label></div>
+        <label>Action<button id="resetFilters" type="button">Reset</button></label>
+      </div>
+      <div class="filter-summary" id="filterSummary">Showing all Telangana registrations.</div>
+    </aside>
+
+    <section class="panel insight">
+      <div class="read-first">
+        <strong>Read this first</strong>
+        <p id="readFirst">Loading dashboard story...</p>
+      </div>
+      <div class="mini-row">
+        <div class="mini"><div class="mini-label">Top maker</div><div class="mini-value" id="topMaker">-</div></div>
+        <div class="mini"><div class="mini-label">Top fuel</div><div class="mini-value" id="topFuel">-</div></div>
+        <div class="mini"><div class="mini-label">Top office</div><div class="mini-value" id="topOffice">-</div></div>
+      </div>
+    </section>
+
+    <article class="kpi kpi1">
+      <div class="kpi-label">Reported Total</div>
+      <div class="kpi-value" id="reportedTotal">-</div>
+      <div class="kpi-note">Source Total column</div>
+    </article>
+    <article class="kpi kpi2">
+      <div class="kpi-label">Jan-Jun Monthly Sum</div>
+      <div class="kpi-value" id="monthlyTotal">-</div>
+      <div class="kpi-note">Jan + Feb + Mar + Apr + May + Jun</div>
+    </article>
+    <article class="kpi kpi3">
+      <div class="kpi-label">Source Gap</div>
+      <div class="kpi-value red" id="sourceGap">-</div>
+      <div class="kpi-note" id="gapNote">Rows needing review</div>
+    </article>
+
+    <section class="panel trend">
+      <div class="chart-head">
+        <h2>Monthly Registration Bar + Trend</h2>
+        <div class="hint" id="trendHint">Updates with filters</div>
+      </div>
+      <div class="line-chart">
+        <div class="line-area">
+          <svg id="trendSvg" viewBox="0 0 600 150" preserveAspectRatio="none" aria-hidden="true"></svg>
+        </div>
+        <div class="month-values" id="monthValues"></div>
+      </div>
+    </section>
+
+    <section class="panel fuel">
+      <div class="chart-head">
+        <h2>Fuel Mix</h2>
+        <div class="hint" id="fuelHint">Reported totals</div>
+      </div>
+      <div class="donut-wrap">
+        <div class="donut" id="fuelDonut" aria-hidden="true"></div>
+        <div class="legend" id="fuelLegend"></div>
+      </div>
+    </section>
+
+    <section class="panel quality">
+      <div class="chart-head">
+        <h2>Data Quality Watch</h2>
+        <div class="hint">Recalculates</div>
+      </div>
+      <div class="quality-grid">
+        <div class="quality-card"><strong id="mismatchRows">-</strong><span>Mismatch rows</span></div>
+        <div class="quality-card"><strong id="zeroTotalRows">-</strong><span>Zero total rows</span></div>
+        <div class="quality-card"><strong id="trueZeroRows">-</strong><span>True zero rows</span></div>
+      </div>
+      <div class="quality-note" id="qualityNote">Filtering will show whether the selected slice has source-total issues.</div>
+    </section>
+
+    <section class="panel makers">
+      <div class="chart-head">
+        <h2>All Makers by Reported Total</h2>
+        <div class="hint" id="makerHint">All selected makers</div>
+      </div>
+      <div class="bar-list" id="makerBars"></div>
+    </section>
+
+    <section class="panel offices">
+      <div class="chart-head">
+        <h2>All Offices Ranked</h2>
+        <div class="hint" id="officeHint">High to low</div>
+      </div>
+      <div class="bar-list" id="officeBars"></div>
+    </section>
+
+    <section class="panel matrix">
+      <div class="chart-head">
+        <h2>All Maker Detail</h2>
+        <div class="hint" id="matrixHint">Reported totals</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Maker</th><th>Total</th><th>Share</th><th>Rows</th></tr></thead>
+          <tbody id="detailRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+</main>
+<div class="tooltip" id="tooltip" role="tooltip"></div>
+
+<script>
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+const colors = ["#2f80ed", "#27ae60", "#f2c94c", "#9b51e0", "#56ccf2", "#f2994a"];
+const fuelColors = {
+  "Petrol": { accent: "#2f80ed", soft: "#dbeafe", deep: "#1f5ea8", border: "#bfdbfe" },
+  "Petrol CNG": { accent: "#27ae60", soft: "#dcfce7", deep: "#15803d", border: "#bbf7d0" },
+  "Diesel": { accent: "#f59e0b", soft: "#fef3c7", deep: "#b45309", border: "#fde68a" },
+  "Diesel Hybrid": { accent: "#9b51e0", soft: "#f3e8ff", deep: "#6b21a8", border: "#e9d5ff" },
+  "default": { accent: "#2f80ed", soft: "#dbeafe", deep: "#1f5ea8", border: "#bfdbfe" },
+};
+const aggregateOffice = "All Vahan4 Running Office";
+let wideRows = [];
+
+const el = (id) => document.getElementById(id);
+const fmt = (value) => Math.round(Number(value || 0)).toLocaleString("en-IN");
+const pct = (value) => `${(Number(value || 0) * 100).toFixed(1)}%`;
+const shortName = (value) => String(value || "-")
+  .replace(" PASSENGER VEHICLES LTD", " PV")
+  .replace(" INDIA LIMITED", "")
+  .replace(" INDIA LTD", "")
+  .replace(" INDIA PRIVATE LIMITED", "")
+  .replace(" INDIA PVT LTD", "")
+  .replace(" PRIVATE LIMITED", "")
+  .replace(" PVT LTD", "")
+  .replace(" LIMITED", "")
+  .replace("MOTOR INDIA", "")
+  .trim();
+
+function displayName(value) {
+  return value === aggregateOffice ? "State Aggregate" : shortName(value);
+}
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const next = text[i + 1];
+    if (char === '"' && inQuotes && next === '"') {
+      cell += '"';
+      i++;
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      row.push(cell);
+      cell = "";
+    } else if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && next === "\n") i++;
+      row.push(cell);
+      if (row.some((v) => v !== "")) rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += char;
+    }
+  }
+  if (cell || row.length) {
+    row.push(cell);
+    rows.push(row);
+  }
+  const headers = rows.shift();
+  return rows.map((values) => Object.fromEntries(headers.map((h, i) => [h, values[i] ?? ""])));
+}
+
+function numeric(row, key) {
+  return Number(row[key] || 0);
+}
+
+function activeFilters() {
+  return {
+    fuel: el("fuelFilter").value,
+    maker: el("makerFilter").value,
+    office: el("officeFilter").value,
+    officeCode: el("officeCodeFilter").value,
+  };
+}
+
+function filteredRows() {
+  return rowsMatching(activeFilters());
+}
+
+function rowsMatching(f) {
+  return wideRows.filter((row) =>
+    (!f.fuel || row["Fuel Type"] === f.fuel) &&
+    (!f.maker || row.Maker === f.maker) &&
+    (!f.office || row.Office === f.office) &&
+    (!f.officeCode || row["Office Code"] === f.officeCode)
+  );
+}
+
+function sum(rows, key) {
+  return rows.reduce((total, row) => total + numeric(row, key), 0);
+}
+
+function groupBy(rows, key, valueKey = "Total") {
+  const map = new Map();
+  rows.forEach((row) => {
+    const label = row[key] || "Unknown";
+    const current = map.get(label) || { label, total: 0, rows: 0 };
+    current.total += numeric(row, valueKey);
+    current.rows += 1;
+    map.set(label, current);
+  });
+  return [...map.values()].sort((a, b) => b.total - a.total);
+}
+
+function isAggregateOffice(row) {
+  return row.Office === aggregateOffice;
+}
+
+function officeRankingRows(rows) {
+  const f = activeFilters();
+  return f.office || f.officeCode ? rows : rows.filter((row) => !isAggregateOffice(row));
+}
+
+function effectiveRegistrations(rows) {
+  const reported = sum(rows, "Total");
+  const calculated = sum(rows, "Calculated Total");
+  return reported === 0 && calculated > 0 ? calculated : reported;
+}
+
+function contextRowsFor(filterKey, value) {
+  const f = activeFilters();
+  return rowsMatching({ ...f, [filterKey]: value });
+}
+
+function filterOptions(key, filterKey) {
+  return [...new Set(wideRows.map((row) => row[key]).filter(Boolean))]
+    .sort((a, b) => String(a).localeCompare(String(b)))
+    .map((value) => ({
+      value,
+      registrations: effectiveRegistrations(contextRowsFor(filterKey, value)),
+    }));
+}
+
+function populateFilter(id, key, filterKey) {
+  const select = el(id);
+  const current = select.value;
+  const options = filterOptions(key, filterKey);
+  const allRegistrations = effectiveRegistrations(contextRowsFor(filterKey, ""));
+  select.innerHTML = `<option value="">All (${fmt(allRegistrations)})</option>` + options
+    .map(({ value, registrations }) => `<option value="${escapeHtml(value)}">${escapeHtml(displayName(value))} (${fmt(registrations)})</option>`)
+    .join("");
+  if (options.some((option) => option.value === current)) select.value = current;
+  else select.value = "";
+}
+
+function availableRowsIgnoring(ignoreKey) {
+  const f = activeFilters();
+  const scoped = { ...f, [ignoreKey]: "" };
+  return rowsMatching(scoped);
+}
+
+function populateFilters() {
+  populateFilter("fuelFilter", "Fuel Type", "fuel");
+  populateFilter("makerFilter", "Maker", "maker");
+  populateFilter("officeFilter", "Office", "office");
+  populateFilter("officeCodeFilter", "Office Code", "officeCode");
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[char]));
+}
+
+function tooltipText(lines) {
+  return escapeHtml(lines.filter(Boolean).join("\n"));
+}
+
+function selectedFuelColor() {
+  const fuel = activeFilters().fuel;
+  return fuelColors[fuel] || fuelColors.default;
+}
+
+function applyFuelColor() {
+  const color = selectedFuelColor();
+  const root = document.documentElement;
+  root.style.setProperty("--accent", color.accent);
+  root.style.setProperty("--accent-soft", color.soft);
+  root.style.setProperty("--accent-deep", color.deep);
+  root.style.setProperty("--accent-border", color.border);
+  return color;
+}
+
+function renderLine(monthly) {
+  const color = selectedFuelColor();
+  const max = Math.max(...monthly.map((d) => d.value), 1);
+  const points = monthly.map((d, i) => {
+    const x = 12 + i * ((600 - 24) / (monthly.length - 1));
+    const y = 135 - (d.value / max) * 112;
+    return { x, y, ...d };
+  });
+  const barWidth = 54;
+  el("trendSvg").innerHTML = `
+    ${points.map((p) => {
+      const h = Math.max(1, (p.value / max) * 112);
+      return `<rect x="${p.x - barWidth / 2}" y="${135 - h}" width="${barWidth}" height="${h}" rx="6" fill="${color.soft}"><title>${p.month}: ${fmt(p.value)} registrations</title></rect>`;
+    }).join("")}
+    <polyline fill="none" stroke="${color.accent}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" points="${points.map((p) => `${p.x},${p.y}`).join(" ")}"></polyline>
+    ${points.map((p) => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="${color.accent}"><title>${p.month}: ${fmt(p.value)} registrations</title></circle>`).join("")}
+  `;
+  el("monthValues").innerHTML = monthly
+    .map((d) => `<span data-tooltip="${tooltipText([`${d.month}`, `${fmt(d.value)} registrations`])}">${d.month}<br><b>${fmt(d.value)}</b></span>`)
+    .join("");
+}
+
+function renderBars(id, items, total) {
+  const max = Math.max(...items.map((d) => d.total), 1);
+  el(id).innerHTML = items.length
+    ? items.map((d) => `
+      <div class="bar-row" data-tooltip="${tooltipText([d.label, `${fmt(d.total)} registrations`, `${pct(total ? d.total / total : 0)} of selected total`, `${fmt(d.rows)} source rows`])}">
+        <span class="name" title="${escapeHtml(d.label)}">${escapeHtml(displayName(d.label))}</span>
+        <div class="bar"><div class="fill" style="width:${Math.max(2, (d.total / max) * 100)}%"></div></div>
+        <span class="value">${fmt(d.total)}</span>
+      </div>
+    `).join("")
+    : '<div class="quality-note">No data for this filter selection.</div>';
+}
+
+function renderFuel(items, total) {
+  let start = 0;
+  const segments = items.map((item, i) => {
+    const share = total ? item.total / total : 0;
+    const end = start + share * 100;
+    const fuelColor = fuelColors[item.label]?.accent || colors[i % colors.length];
+    const part = `${fuelColor} ${start}% ${end}%`;
+    start = end;
+    return part;
+  });
+  el("fuelDonut").style.background = segments.length
+    ? `conic-gradient(${segments.join(",")})`
+    : "var(--soft)";
+  el("fuelLegend").innerHTML = items.length
+    ? items.map((item, i) => `
+      <div class="legend-row" data-tooltip="${tooltipText([item.label, `${fmt(item.total)} registrations`, `${pct(total ? item.total / total : 0)} of selected total`, `${fmt(item.rows)} source rows`])}">
+        <span class="dot" style="background:${fuelColors[item.label]?.accent || colors[i % colors.length]}"></span>
+        <span>${escapeHtml(displayName(item.label))}</span>
+        <b>${fmt(item.total)}</b>
+      </div>
+    `).join("")
+    : '<div class="quality-note">No fuel data.</div>';
+}
+
+function renderTable(items, total) {
+  el("detailRows").innerHTML = items.length ? items.map((item) => `
+    <tr data-tooltip="${tooltipText([item.label, `${fmt(item.total)} registrations`, `${pct(total ? item.total / total : 0)} share`, `${fmt(item.rows)} source rows`])}">
+      <td>${escapeHtml(displayName(item.label))}</td>
+      <td>${fmt(item.total)}</td>
+      <td>${pct(total ? item.total / total : 0)}</td>
+      <td>${fmt(item.rows)}</td>
+    </tr>
+  `).join("") : '<tr><td colspan="4">No matching rows. Use Reset or change the filters.</td></tr>';
+}
+
+function selectedLabel(selectId) {
+  const select = el(selectId);
+  return select.value ? select.selectedOptions[0].textContent : "All";
+}
+
+function renderFilterSummary(rows, visualTotal) {
+  const f = activeFilters();
+  const filters = [
+    ["fuel", "Fuel", "fuelFilter"],
+    ["maker", "Maker", "makerFilter"],
+    ["office", "Office", "officeFilter"],
+    ["officeCode", "Office Code", "officeCodeFilter"],
+  ];
+  const active = filters
+    .map(([key, label, selectId]) => activeFilters()[key] ? `${label}: ${selectedLabel(selectId)}` : "")
+    .filter(Boolean);
+  el("filterSummary").textContent = active.length
+    ? `Active filters: ${active.join(" | ")}. Showing ${fmt(rows.length)} matching data rows.`
+    : `Showing all Telangana registrations: ${fmt(rows.length)} data rows.`;
+}
+
+function setStaticTooltips({ reported, calculated, variance, mismatch, zeroTotal, trueZero, visualMetric, visualTotal }) {
+  document.querySelector(".kpi1").dataset.tooltip = tooltipText([
+    "Reported Total",
+    `${fmt(reported)} registrations`,
+    "Uses the source Total column",
+  ]);
+  document.querySelector(".kpi2").dataset.tooltip = tooltipText([
+    "Jan-Jun Monthly Sum",
+    `${fmt(calculated)} registrations`,
+    "Jan + Feb + Mar + Apr + May + Jun",
+  ]);
+  document.querySelector(".kpi3").dataset.tooltip = tooltipText([
+    "Source Gap",
+    `${fmt(variance)} registrations`,
+    `${fmt(mismatch)} mismatch rows`,
+  ]);
+  document.querySelector(".fuel .donut").dataset.tooltip = tooltipText([
+    "Fuel Mix",
+    `${fmt(visualTotal)} registrations shown`,
+    visualMetric === "Calculated Total" ? "Using monthly sum for this slice" : "Using reported Total",
+  ]);
+  el("mismatchRows").parentElement.dataset.tooltip = tooltipText(["Mismatch rows", `${fmt(mismatch)} rows where Total != Jan-Jun sum`]);
+  el("zeroTotalRows").parentElement.dataset.tooltip = tooltipText(["Zero total rows", `${fmt(zeroTotal)} rows where reported Total is 0`]);
+  el("trueZeroRows").parentElement.dataset.tooltip = tooltipText(["True zero rows", `${fmt(trueZero)} rows where Total and Jan-Jun sum are both 0`]);
+}
+
+function updateDashboard() {
+  populateFilters();
+  applyFuelColor();
+  const rows = filteredRows();
+  const reported = sum(rows, "Total");
+  const calculated = sum(rows, "Calculated Total");
+  const variance = reported - calculated;
+  const visualMetric = reported === 0 && calculated > 0 ? "Calculated Total" : "Total";
+  const visualTotal = visualMetric === "Calculated Total" ? calculated : reported;
+  const mismatch = rows.filter((r) => r["Total Check"] === "Mismatch").length;
+  const zeroTotal = rows.filter((r) => numeric(r, "Total") === 0).length;
+  const trueZero = rows.filter((r) => numeric(r, "Total") === 0 && numeric(r, "Calculated Total") === 0).length;
+
+  const makerItems = groupBy(rows, "Maker", visualMetric);
+  const fuelItems = groupBy(rows, "Fuel Type", visualMetric);
+  const rankedOfficeRows = officeRankingRows(rows);
+  const officeItems = groupBy(rankedOfficeRows, "Office", visualMetric);
+  const monthly = months.map((month) => ({ month, value: sum(rows, month) }));
+
+  const realOfficeCount = new Set(rows.filter((r) => !isAggregateOffice(r)).map((r) => r.Office)).size;
+  const aggregateRows = rows.filter(isAggregateOffice).length;
+  el("subtitle").textContent = `VAHAN all-fuels passenger car registrations | ${fmt(rows.length)} selected rows | ${fmt(new Set(rows.map((r) => r.Maker)).size)} makers | ${fmt(realOfficeCount)} real offices${aggregateRows ? ` | ${fmt(aggregateRows)} aggregate rows` : ""}`;
+  el("reportedTotal").textContent = fmt(reported);
+  el("monthlyTotal").textContent = fmt(calculated);
+  el("sourceGap").textContent = fmt(variance);
+  el("sourceGap").className = `kpi-value ${variance < 0 ? "red" : "green"}`;
+  el("gapNote").textContent = `${fmt(mismatch)} rows need review`;
+  el("mismatchRows").textContent = fmt(mismatch);
+  el("zeroTotalRows").textContent = fmt(zeroTotal);
+  el("trueZeroRows").textContent = fmt(trueZero);
+
+  const topMaker = makerItems[0];
+  const topFuel = fuelItems[0];
+  const topOffice = officeItems[0];
+  el("topMaker").textContent = topMaker ? `${displayName(topMaker.label)}: ${fmt(topMaker.total)}` : "-";
+  el("topFuel").textContent = topFuel ? `${displayName(topFuel.label)}: ${pct(visualTotal ? topFuel.total / visualTotal : 0)}` : "-";
+  el("topOffice").textContent = topOffice ? `${displayName(topOffice.label)}: ${fmt(topOffice.total)}` : "-";
+
+  const selectedText = Object.values(activeFilters()).filter(Boolean).map(displayName).join(" + ") || "all Telangana";
+  el("readFirst").textContent = rows.length
+    ? `For ${selectedText}, reported total is ${fmt(reported)} and Jan-Jun monthly values sum to ${fmt(calculated)}. The source gap is ${fmt(variance)}, with ${fmt(mismatch)} rows needing review.${aggregateRows && !activeFilters().office && !activeFilters().officeCode ? " Office rankings exclude the state aggregate source." : ""}`
+    : "No rows match the current filter combination. Use Reset or choose another available slicer value.";
+  el("trendHint").textContent = `Peak: ${monthly.reduce((a, b) => a.value > b.value ? a : b).month} ${fmt(Math.max(...monthly.map((m) => m.value)))}`;
+  el("fuelHint").textContent = topFuel ? `${displayName(topFuel.label)} leads` : "No data";
+  el("makerHint").textContent = `${fmt(makerItems.length)} makers, high to low`;
+  el("officeHint").textContent = topOffice ? `${fmt(officeItems.length)} offices, high to low${rankedOfficeRows.length !== rows.length ? " (real offices)" : ""}` : "No data";
+  el("matrixHint").textContent = `${fmt(makerItems.length)} maker rows`;
+  el("qualityNote").textContent = mismatch
+    ? "Mismatch means Total does not equal Jan-Jun monthly sum. If Reported Total is zero, charts use monthly sum so the slice is still visible."
+    : "No total mismatch found for this filtered selection.";
+
+  renderFilterSummary(rows, visualTotal);
+  setStaticTooltips({ reported, calculated, variance, mismatch, zeroTotal, trueZero, visualMetric, visualTotal });
+  renderLine(monthly);
+  renderFuel(fuelItems, visualTotal);
+  renderBars("makerBars", makerItems, visualTotal);
+  renderBars("officeBars", officeItems, visualTotal);
+  renderTable(makerItems, visualTotal);
+}
+
+async function init() {
+  try {
+    const csv = await fetch("TELANGANA_PowerBI_Wide.csv").then((res) => {
+      if (!res.ok) throw new Error("Could not load CSV");
+      return res.text();
+    });
+    wideRows = parseCSV(csv);
+    populateFilters();
+    ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter"].forEach((id) => {
+      el(id).addEventListener("change", updateDashboard);
+    });
+    el("resetFilters").addEventListener("click", () => {
+      ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter"].forEach((id) => el(id).value = "");
+      updateDashboard();
+    });
+    updateDashboard();
+  } catch (error) {
+    el("readFirst").textContent = `Could not load dashboard data: ${error.message}. Open this preview through the local server, not directly as a file.`;
+  }
+}
+
+const tooltip = el("tooltip");
+document.addEventListener("pointermove", (event) => {
+  const target = event.target.closest("[data-tooltip]");
+  if (!target) {
+    tooltip.classList.remove("show");
+    return;
+  }
+  tooltip.innerHTML = target.dataset.tooltip;
+  const x = Math.min(Math.max(event.clientX, 150), window.innerWidth - 150);
+  const y = Math.max(event.clientY - 10, 40);
+  tooltip.style.left = `${x}px`;
+  tooltip.style.top = `${y}px`;
+  tooltip.classList.add("show");
+});
+document.addEventListener("pointerleave", () => tooltip.classList.remove("show"));
+document.addEventListener("scroll", () => tooltip.classList.remove("show"), true);
+
+init();
+</script>
+</body>
+</html>

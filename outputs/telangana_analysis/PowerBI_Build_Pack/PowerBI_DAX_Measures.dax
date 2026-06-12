@@ -1,0 +1,103 @@
+-- Table names assumed:
+--   TELANGANA_PowerBI_Wide
+--   TELANGANA_PowerBI_Monthly
+--   Month_Dim
+
+Total Registrations =
+SUM('TELANGANA_PowerBI_Wide'[Total])
+
+Calculated Monthly Total =
+SUM('TELANGANA_PowerBI_Wide'[Calculated Total])
+
+Total Variance =
+[Total Registrations] - [Calculated Monthly Total]
+
+Variance Alert =
+IF([Total Variance] < 0, "Review source totals", "OK")
+
+Maker Count =
+DISTINCTCOUNT('TELANGANA_PowerBI_Wide'[Maker])
+
+Office Count =
+DISTINCTCOUNT('TELANGANA_PowerBI_Wide'[Office])
+
+Fuel Type Count =
+DISTINCTCOUNT('TELANGANA_PowerBI_Wide'[Fuel Type])
+
+Mismatch Row Count =
+COUNTROWS(
+    FILTER(
+        'TELANGANA_PowerBI_Wide',
+        'TELANGANA_PowerBI_Wide'[Total Check] = "Mismatch"
+    )
+)
+
+Registration Share =
+DIVIDE(
+    [Total Registrations],
+    CALCULATE([Total Registrations], ALL('TELANGANA_PowerBI_Wide'))
+)
+
+Monthly Registrations =
+SUM('TELANGANA_PowerBI_Monthly'[Registrations])
+
+Previous Month Registrations =
+CALCULATE(
+    [Monthly Registrations],
+    FILTER(
+        ALL('Month_Dim'),
+        'Month_Dim'[Month No] = MAX('Month_Dim'[Month No]) - 1
+    )
+)
+
+MoM Change =
+[Monthly Registrations] - [Previous Month Registrations]
+
+MoM Change % =
+DIVIDE([MoM Change], [Previous Month Registrations])
+
+May Registrations =
+CALCULATE(
+    [Monthly Registrations],
+    'Month_Dim'[Month] = "May"
+)
+
+June Registrations =
+CALCULATE(
+    [Monthly Registrations],
+    'Month_Dim'[Month] = "Jun"
+)
+
+May to June Change =
+[June Registrations] - [May Registrations]
+
+May to June Change % =
+DIVIDE([May to June Change], [May Registrations])
+
+Top Maker Label =
+VAR TopMaker =
+    TOPN(
+        1,
+    SUMMARIZE(
+            'Maker_Dim',
+            'Maker_Dim'[Maker],
+            "MakerTotal", [Total Registrations]
+        ),
+        [MakerTotal], DESC
+    )
+RETURN
+CONCATENATEX(TopMaker, 'Maker_Dim'[Maker])
+
+Top Office Label =
+VAR TopOffice =
+    TOPN(
+        1,
+    SUMMARIZE(
+            'Office_Dim',
+            'Office_Dim'[Office],
+            "OfficeTotal", [Total Registrations]
+        ),
+        [OfficeTotal], DESC
+    )
+RETURN
+CONCATENATEX(TopOffice, 'Office_Dim'[Office])
