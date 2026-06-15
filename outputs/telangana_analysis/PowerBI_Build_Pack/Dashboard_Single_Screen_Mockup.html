@@ -524,7 +524,7 @@
 
   th:first-child,
   td:first-child {
-    width: 46%;
+    width: 58%;
   }
 
   th {
@@ -948,7 +948,7 @@
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Maker</th><th>Total</th><th>Share</th><th>Rows</th></tr></thead>
+          <thead><tr><th>Maker</th><th>Total</th><th>Share</th></tr></thead>
           <tbody id="detailRows"></tbody>
         </table>
       </div>
@@ -1362,9 +1362,8 @@ function renderTable(items, total) {
       <td>${escapeHtml(displayName(item.label))}</td>
       <td>${fmt(item.total)}</td>
       <td>${pct(total ? item.total / total : 0)}</td>
-      <td>${fmt(item.rows)}</td>
     </tr>
-  `).join("") : '<tr><td colspan="4">No matching rows. Use Reset or change the filters.</td></tr>';
+  `).join("") : '<tr><td colspan="3">No matching rows. Use Reset or change the filters.</td></tr>';
 }
 
 function selectedLabel(selectId) {
