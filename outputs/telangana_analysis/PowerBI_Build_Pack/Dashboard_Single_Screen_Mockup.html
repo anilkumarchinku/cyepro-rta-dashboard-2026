@@ -869,10 +869,10 @@
     <aside class="filters" aria-label="Dashboard filters">
       <h2>Filters</h2>
       <div class="slicer-grid">
-        <div class="slicer-box"><label>Vehicle Type<select id="vehicleTypeFilter"><option value="4W" selected>4W</option><option value="2W">2W</option><option value="3W">3W</option></select></label></div>
         <div class="slicer-box"><label>Fuel Type<select id="fuelFilter"><option value="">All</option></select></label></div>
         <div class="slicer-box"><label>Maker<select id="makerFilter"><option value="">All</option></select></label></div>
         <div class="slicer-box"><label>Office<select id="officeFilter"><option value="">All</option></select></label></div>
+        <div class="slicer-box"><label>Vehicle Type<select id="vehicleTypeFilter"><option value="4W" selected>4W</option><option value="2W">2W</option><option value="3W">3W</option></select></label></div>
         <div class="slicer-box"><label>Upload Table<input id="tableUpload" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" /></label><div class="file-note" id="fileStatus">Default Telangana data loaded.</div></div>
         <label>Action<button id="resetFilters" type="button">Reset</button></label>
       </div>
@@ -1292,6 +1292,19 @@ function populateFilter(id, key, filterKey) {
   else select.value = "";
 }
 
+function populateVehicleTypeFilter() {
+  const select = el("vehicleTypeFilter");
+  const current = select.value || "4W";
+  const options = ["2W", "3W", "4W"].map((value) => ({
+    value,
+    registrations: effectiveRegistrations(contextRowsFor("vehicleType", value)),
+  }));
+  select.innerHTML = options
+    .map(({ value, registrations }) => `<option value="${value}">${value} (${fmt(registrations)})</option>`)
+    .join("");
+  select.value = options.some((option) => option.value === current) ? current : "4W";
+}
+
 function availableRowsIgnoring(ignoreKey) {
   const f = activeFilters();
   const scoped = { ...f, [ignoreKey]: "" };
@@ -1299,7 +1312,7 @@ function availableRowsIgnoring(ignoreKey) {
 }
 
 function populateFilters() {
-  populateFilter("vehicleTypeFilter", "Vehicle Type", "vehicleType");
+  populateVehicleTypeFilter();
   populateFilter("fuelFilter", "Fuel Type", "fuel");
   populateFilter("makerFilter", "Maker", "maker");
   populateFilter("officeFilter", "Office", "office");
