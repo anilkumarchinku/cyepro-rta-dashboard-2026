@@ -23,6 +23,7 @@ Import these CSV files:
 - TELANGANA_PowerBI_Monthly.csv
 - Month_Dim.csv
 - Maker_Dim.csv
+- Vehicle_Type_Dim.csv
 - Fuel_Type_Dim.csv
 - Office_Dim.csv
 
@@ -32,6 +33,7 @@ The HTML preview includes an **Upload Table** control in the filter rail. Other 
 Best results come from a table with these columns or close alternatives:
 - Fuel Type or Fuel
 - Maker, Manufacturer, Make, Brand, or OEM
+- Vehicle Type, Segment, or Category (optional; inferred from known makers when missing)
 - Office, RTA Office, Location, District, City, or Region
 - Office Code or Code
 - Jan, Feb, Mar, Apr, May, Jun
@@ -43,6 +45,8 @@ Create relationships:
 - Month_Dim[Month No] one-to-many to TELANGANA_PowerBI_Monthly[Month No]
 - Maker_Dim[Maker] one-to-many to TELANGANA_PowerBI_Wide[Maker]
 - Maker_Dim[Maker] one-to-many to TELANGANA_PowerBI_Monthly[Maker]
+- Vehicle_Type_Dim[Vehicle Type] one-to-many to TELANGANA_PowerBI_Wide[Vehicle Type]
+- Vehicle_Type_Dim[Vehicle Type] one-to-many to TELANGANA_PowerBI_Monthly[Vehicle Type]
 - Fuel_Type_Dim[Fuel Type] one-to-many to TELANGANA_PowerBI_Wide[Fuel Type]
 - Fuel_Type_Dim[Fuel Type] one-to-many to TELANGANA_PowerBI_Monthly[Fuel Type]
 - Office_Dim[Office] one-to-many to TELANGANA_PowerBI_Wide[Office]

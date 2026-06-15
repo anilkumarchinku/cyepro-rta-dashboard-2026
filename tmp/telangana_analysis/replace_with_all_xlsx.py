@@ -46,6 +46,31 @@ FOUR_WHEELER_MAKERS = {
     "VOLKSWAGEN",
     "VOLVO",
 }
+TWO_WHEELER_MAKERS = {
+    "ATHER",
+    "BAJAJ",
+    "BATTRE",
+    "GREAVES ELECTRIC",
+    "HERO MOTOCORP",
+    "HONDA MOTORCYCLE",
+    "KOMAKI",
+    "OLA ELECTRIC",
+    "REVOLT",
+    "RIVER",
+    "SIMPLEENERGY",
+    "TVS",
+    "ULTRAVIOLETTE",
+}
+THREE_WHEELER_MAKERS = {
+    "BAXY",
+    "GOREEN",
+    "KINETIC",
+    "OMEGA SEIKI",
+    "OPG MOBILITY",
+    "OTHERS",
+    "SHREE SHYAM AGROTECH",
+    "WUXI MDKA",
+}
 
 
 def text(value):
@@ -146,6 +171,16 @@ def normalize_maker(value):
     return re.sub(r"\s+", " ", cleaned).strip(" -") or raw or "UNKNOWN MAKER"
 
 
+def vehicle_type(maker):
+    if maker in FOUR_WHEELER_MAKERS:
+        return "4W"
+    if maker in TWO_WHEELER_MAKERS:
+        return "2W"
+    if maker in THREE_WHEELER_MAKERS:
+        return "3W"
+    return "3W"
+
+
 def parse_office(source_name):
     raw = text(source_name)
     without_ext = re.sub(r"\.xlsx$", "", raw, flags=re.I).strip()
@@ -174,13 +209,15 @@ def read_rows():
         total = num(source_row[index["TOTAL"]])
         variance = total - calculated
         raw_maker = text(source_row[index["MAKER"]])
+        maker = normalize_maker(raw_maker)
         cleaned.append(
             {
                 "Source Name": source_name,
                 "Office": office,
                 "Office Code": office_code,
                 "Raw Maker": raw_maker,
-                "Maker": normalize_maker(raw_maker),
+                "Maker": maker,
+                "Vehicle Type": vehicle_type(maker),
                 "Fuel Type": corrected_fuel(raw_maker, source_row[index["FUEL TYPE"]]),
                 **month_values,
                 "Total": total,
@@ -201,14 +238,14 @@ def write_csv(path, fieldnames, rows):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    all_rows = read_rows()
-    wide = [row for row in all_rows if row["Maker"] in FOUR_WHEELER_MAKERS]
+    wide = read_rows()
     wide_columns = [
         "Source Name",
         "Office",
         "Office Code",
         "Raw Maker",
         "Maker",
+        "Vehicle Type",
         "Fuel Type",
         *MONTHS,
         "Total",
@@ -228,6 +265,7 @@ def main():
                     "Office Code": row["Office Code"],
                     "Raw Maker": row["Raw Maker"],
                     "Maker": row["Maker"],
+                    "Vehicle Type": row["Vehicle Type"],
                     "Fuel Type": row["Fuel Type"],
                     "Month": month,
                     "Month No": month_no,
@@ -247,6 +285,7 @@ def main():
             "Office Code",
             "Raw Maker",
             "Maker",
+            "Vehicle Type",
             "Fuel Type",
             "Month",
             "Month No",
@@ -287,6 +326,11 @@ def main():
         ["Fuel Type"],
         [{"Fuel Type": value} for value in sorted({row["Fuel Type"] for row in wide})],
     )
+    write_csv(
+        OUT / "Vehicle_Type_Dim.csv",
+        ["Vehicle Type"],
+        [{"Vehicle Type": value} for value in ["4W", "2W", "3W"] if value in {row["Vehicle Type"] for row in wide}],
+    )
     offices = {
         (row["Office"], row["Office Code"]): {"Office": row["Office"], "Office Code": row["Office Code"]}
         for row in wide
@@ -306,7 +350,6 @@ def main():
     print(
         {
             "rows": len(wide),
-            "source_rows_before_4w_filter": len(all_rows),
             "reported": reported,
             "calculated": calculated,
             "variance": reported - calculated,
@@ -314,6 +357,7 @@ def main():
             "makers": len({row["Maker"] for row in wide}),
             "offices": len({row["Office"] for row in wide}),
             "fuel_types": len({row["Fuel Type"] for row in wide}),
+            "vehicle_types": {value: sum(row["Total"] for row in wide if row["Vehicle Type"] == value) for value in sorted({row["Vehicle Type"] for row in wide})},
         }
     )
 
