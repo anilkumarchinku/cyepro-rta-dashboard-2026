@@ -325,10 +325,10 @@
   }
 
   .line-chart {
-    height: 140px;
+    height: 158px;
     display: grid;
     grid-template-rows: 1fr auto;
-    gap: 5px;
+    gap: 8px;
   }
 
   .line-area {
@@ -348,14 +348,28 @@
   .month-values {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 4px;
-    font-size: 10px;
+    gap: 6px;
+    font-size: 10.5px;
     color: var(--muted);
   }
 
   .month-values span {
+    min-width: 0;
     text-align: center;
-    white-space: nowrap;
+    white-space: normal;
+    border: 1px solid #e5edf7;
+    border-radius: 8px;
+    background: #f8fbff;
+    padding: 4px 3px;
+    line-height: 1.15;
+  }
+
+  .month-values b {
+    display: block;
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 850;
+    margin-top: 2px;
   }
 
   .donut-wrap {
@@ -580,7 +594,7 @@
     }
 
     .line-chart {
-      height: 170px;
+      height: 205px;
     }
 
     .donut-wrap {
@@ -677,6 +691,14 @@
 
     .bar-list {
       max-height: 260px;
+    }
+
+    .month-values {
+      font-size: 11px;
+    }
+
+    .month-values b {
+      font-size: 13px;
     }
 
     .matrix {
@@ -797,12 +819,17 @@
     }
 
     .line-chart {
-      height: 170px;
+      height: 230px;
     }
 
     .month-values {
-      font-size: 9px;
-      gap: 2px;
+      grid-template-columns: repeat(3, 1fr);
+      font-size: 10.5px;
+      gap: 6px;
+    }
+
+    .month-values b {
+      font-size: 12px;
     }
 
     table {
