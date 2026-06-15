@@ -872,7 +872,7 @@
         <div class="slicer-box"><label>Fuel Type<select id="fuelFilter"><option value="">All</option></select></label></div>
         <div class="slicer-box"><label>Maker<select id="makerFilter"><option value="">All</option></select></label></div>
         <div class="slicer-box"><label>Office<select id="officeFilter"><option value="">All</option></select></label></div>
-        <div class="slicer-box"><label>Vehicle Type<select id="vehicleTypeFilter"><option value="4W" selected>4W</option><option value="2W">2W</option><option value="3W">3W</option></select></label></div>
+        <div class="slicer-box"><label>Vehicle Type<select id="vehicleTypeFilter"><option value="4W" selected>4W</option><option value="3W">3W</option></select></label></div>
         <div class="slicer-box"><label>Upload Table<input id="tableUpload" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" /></label><div class="file-note" id="fileStatus">Default Telangana data loaded.</div></div>
         <label>Action<button id="resetFilters" type="button">Reset</button></label>
       </div>
@@ -1058,7 +1058,7 @@ function displayName(value) {
 function inferVehicleType(maker) {
   const normalized = String(maker || "").toUpperCase().trim();
   if (fourWheelerMakers.has(normalized)) return "4W";
-  if (twoWheelerMakers.has(normalized)) return "2W";
+  if (twoWheelerMakers.has(normalized)) return "3W";
   if (threeWheelerMakers.has(normalized)) return "3W";
   return "3W";
 }
@@ -1295,7 +1295,7 @@ function populateFilter(id, key, filterKey) {
 function populateVehicleTypeFilter() {
   const select = el("vehicleTypeFilter");
   const current = select.value || "4W";
-  const options = ["2W", "3W", "4W"].map((value) => ({
+  const options = ["3W", "4W"].map((value) => ({
     value,
     registrations: effectiveRegistrations(contextRowsFor("vehicleType", value)),
   }));

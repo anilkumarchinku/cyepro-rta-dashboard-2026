@@ -175,7 +175,7 @@ def vehicle_type(maker):
     if maker in FOUR_WHEELER_MAKERS:
         return "4W"
     if maker in TWO_WHEELER_MAKERS:
-        return "2W"
+        return "3W"
     if maker in THREE_WHEELER_MAKERS:
         return "3W"
     return "3W"
@@ -329,7 +329,7 @@ def main():
     write_csv(
         OUT / "Vehicle_Type_Dim.csv",
         ["Vehicle Type"],
-        [{"Vehicle Type": value} for value in ["4W", "2W", "3W"] if value in {row["Vehicle Type"] for row in wide}],
+        [{"Vehicle Type": value} for value in ["4W", "3W"] if value in {row["Vehicle Type"] for row in wide}],
     )
     offices = {
         (row["Office"], row["Office Code"]): {"Office": row["Office"], "Office Code": row["Office Code"]}
