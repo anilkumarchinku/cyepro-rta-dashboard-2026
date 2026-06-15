@@ -34,6 +34,13 @@ def normalize_fuel(value):
     return "Electric" if cleaned == "Diesel Electrical" else cleaned
 
 
+def corrected_fuel(raw_maker, raw_fuel):
+    maker = normalize_maker(raw_maker)
+    fuel = normalize_fuel(raw_fuel)
+    ev_only_makers = {"VINFAST"}
+    return "Electric" if maker in ev_only_makers else fuel
+
+
 def normalize_maker(value):
     raw = re.sub(r"\s+", " ", text(value).upper()).strip()
     raw = raw.replace(" -", "-").replace("- ", "-")
@@ -132,14 +139,15 @@ def read_rows():
         calculated = sum(month_values.values())
         total = num(source_row[index["TOTAL"]])
         variance = total - calculated
+        raw_maker = text(source_row[index["MAKER"]])
         cleaned.append(
             {
                 "Source Name": source_name,
                 "Office": office,
                 "Office Code": office_code,
-                "Raw Maker": text(source_row[index["MAKER"]]),
-                "Maker": normalize_maker(source_row[index["MAKER"]]),
-                "Fuel Type": normalize_fuel(source_row[index["FUEL TYPE"]]),
+                "Raw Maker": raw_maker,
+                "Maker": normalize_maker(raw_maker),
+                "Fuel Type": corrected_fuel(raw_maker, source_row[index["FUEL TYPE"]]),
                 **month_values,
                 "Total": total,
                 "Calculated Total": calculated,
