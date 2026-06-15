@@ -872,7 +872,6 @@
         <div class="slicer-box"><label>Fuel Type<select id="fuelFilter"><option value="">All</option></select></label></div>
         <div class="slicer-box"><label>Maker<select id="makerFilter"><option value="">All</option></select></label></div>
         <div class="slicer-box"><label>Office<select id="officeFilter"><option value="">All</option></select></label></div>
-        <div class="slicer-box"><label>Office Code<select id="officeCodeFilter"><option value="">All</option></select></label></div>
         <div class="slicer-box"><label>Upload Table<input id="tableUpload" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" /></label><div class="file-note" id="fileStatus">Default Telangana data loaded.</div></div>
         <label>Action<button id="resetFilters" type="button">Reset</button></label>
       </div>
@@ -1161,7 +1160,6 @@ function activeFilters() {
     fuel: el("fuelFilter").value,
     maker: el("makerFilter").value,
     office: el("officeFilter").value,
-    officeCode: el("officeCodeFilter").value,
     only4w: true,
   };
 }
@@ -1175,8 +1173,7 @@ function rowsMatching(f) {
     (!f.only4w || fourWheelerMakers.has(row.Maker)) &&
     (!f.fuel || row["Fuel Type"] === f.fuel) &&
     (!f.maker || row.Maker === f.maker) &&
-    (!f.office || row.Office === f.office) &&
-    (!f.officeCode || row["Office Code"] === f.officeCode)
+    (!f.office || row.Office === f.office)
   );
 }
 
@@ -1217,7 +1214,7 @@ function isAggregateOffice(row) {
 
 function officeRankingRows(rows) {
   const f = activeFilters();
-  return f.office || f.officeCode ? rows : rows.filter((row) => !isAggregateOffice(row));
+  return f.office ? rows : rows.filter((row) => !isAggregateOffice(row));
 }
 
 function effectiveRegistrations(rows) {
@@ -1269,7 +1266,6 @@ function populateFilters() {
   populateFilter("fuelFilter", "Fuel Type", "fuel");
   populateFilter("makerFilter", "Maker", "maker");
   populateFilter("officeFilter", "Office", "office");
-  populateFilter("officeCodeFilter", "Office Code", "officeCode");
 }
 
 function escapeHtml(value) {
@@ -1377,7 +1373,6 @@ function renderFilterSummary(rows, visualTotal) {
     ["fuel", "Fuel", "fuelFilter"],
     ["maker", "Maker", "makerFilter"],
     ["office", "Office", "officeFilter"],
-    ["officeCode", "Office Code", "officeCodeFilter"],
   ];
   const active = filters
     .map(([key, label, selectId]) => activeFilters()[key] ? `${label}: ${selectedLabel(selectId)}` : "")
@@ -1435,12 +1430,12 @@ function updateDashboard() {
   el("topOffice").textContent = topOffice ? `${displayName(topOffice.label)}: ${fmt(topOffice.total)}` : "-";
 
   const currentFilters = activeFilters();
-  const selectedText = [currentFilters.fuel, currentFilters.maker, currentFilters.office, currentFilters.officeCode]
+  const selectedText = [currentFilters.fuel, currentFilters.maker, currentFilters.office]
     .filter(Boolean)
     .map(displayName)
     .join(" + ") || (currentFilters.only4w ? "Telangana 4W brands only" : "all Telangana");
   el("readFirst").textContent = rows.length
-    ? `For ${selectedText}, reported total is ${fmt(reported)} and Jan-Jun monthly values sum to ${fmt(calculated)}.${currentFilters.only4w ? " Two-wheeler and three-wheeler brands are hidden." : ""}${aggregateRows && !currentFilters.office && !currentFilters.officeCode ? " Office rankings exclude the state aggregate source." : ""}`
+    ? `For ${selectedText}, reported total is ${fmt(reported)} and Jan-Jun monthly values sum to ${fmt(calculated)}.${currentFilters.only4w ? " Two-wheeler and three-wheeler brands are hidden." : ""}${aggregateRows && !currentFilters.office ? " Office rankings exclude the state aggregate source." : ""}`
     : "No rows match the current filter combination. Use Reset or choose another available slicer value.";
   el("trendHint").textContent = `Peak: ${monthly.reduce((a, b) => a.value > b.value ? a : b).month} ${fmt(Math.max(...monthly.map((m) => m.value)))}`;
   el("fuelHint").textContent = topFuel ? `${displayName(topFuel.label)} leads` : "No data";
@@ -1458,7 +1453,7 @@ function updateDashboard() {
 }
 
 function clearFilters() {
-  ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter"].forEach((id) => el(id).value = "");
+  ["fuelFilter", "makerFilter", "officeFilter"].forEach((id) => el(id).value = "");
 }
 
 function loadDataset(rawRows, label) {
@@ -1516,7 +1511,7 @@ async function handleUpload(event) {
 async function init() {
   try {
     await loadDefaultDataset();
-    ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter"].forEach((id) => {
+    ["fuelFilter", "makerFilter", "officeFilter"].forEach((id) => {
       el(id).addEventListener("change", updateDashboard);
     });
     el("resetFilters").addEventListener("click", () => {
