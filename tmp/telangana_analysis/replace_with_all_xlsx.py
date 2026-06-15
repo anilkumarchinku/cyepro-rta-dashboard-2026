@@ -7,11 +7,45 @@ from openpyxl import load_workbook
 
 
 BASE = Path("/Users/anilkumarkolukulapalli/Documents/dashbord")
-SOURCE = Path("/Users/anilkumarkolukulapalli/Library/Containers/net.whatsapp.WhatsApp/Data/tmp/documents/4610BEC9-B38C-46D1-9298-F1A44C8D1E64/all.xlsx")
+SOURCE = Path("/Users/anilkumarkolukulapalli/Library/Containers/net.whatsapp.WhatsApp/Data/tmp/documents/7BB5E775-BB01-4A59-96E6-8B8E19540E94/all.xlsx")
 OUT = BASE / "outputs/telangana_analysis/PowerBI_Build_Pack"
 ZIP_PATH = BASE / "outputs/telangana_analysis/Telangana_PowerBI_Build_Pack.zip"
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
 SOURCE_SHEET = "VAHAN DIESEL HYBRID CARS 09TH J"
+FOUR_WHEELER_MAKERS = {
+    "AUDI",
+    "BENTLEY",
+    "BMW",
+    "BYD",
+    "FERRARI",
+    "FORCE MOTORS",
+    "HONDA CARS",
+    "HYUNDAI",
+    "ISUZU",
+    "JAGUAR LAND ROVER",
+    "KIA",
+    "LEXUS",
+    "MAHINDRA & MAHINDRA",
+    "MAHINDRA ELECTRIC",
+    "MARUTI SUZUKI",
+    "MERCEDES-BENZ",
+    "MG MOTOR",
+    "NISSAN",
+    "PORSCHE",
+    "RENAULT",
+    "RENAULT NISSAN",
+    "ROLLS ROYCE",
+    "SKODA AUTO VOLKSWAGEN",
+    "STELLANTIS",
+    "TATA MOTORS",
+    "TATA MOTORS PASSENGER VEHICLES",
+    "TATA PASSENGER ELECTRIC MOBILITY",
+    "TESLA",
+    "TOYOTA",
+    "VINFAST",
+    "VOLKSWAGEN",
+    "VOLVO",
+}
 
 
 def text(value):
@@ -58,7 +92,7 @@ def normalize_maker(value):
         ("KINETIC", "KINETIC"),
         ("TOYOTA", "TOYOTA"),
         ("JSW MG", "MG MOTOR"),
-        ("SKODA AUTO VOLKSWAGEN", "SKODA VOLKSWAGEN"),
+        ("SKODA AUTO VOLKSWAGEN", "SKODA AUTO VOLKSWAGEN"),
         ("VOLKSWAGEN AG", "VOLKSWAGEN"),
         ("HONDA CARS", "HONDA CARS"),
         ("HONDA MOTORCYCLE", "HONDA MOTORCYCLE"),
@@ -167,7 +201,8 @@ def write_csv(path, fieldnames, rows):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    wide = read_rows()
+    all_rows = read_rows()
+    wide = [row for row in all_rows if row["Maker"] in FOUR_WHEELER_MAKERS]
     wide_columns = [
         "Source Name",
         "Office",
@@ -238,6 +273,15 @@ def main():
         ],
     )
     write_csv(OUT / "Maker_Dim.csv", ["Maker"], [{"Maker": value} for value in sorted({row["Maker"] for row in wide})])
+    raw_maker_map = {
+        (row["Raw Maker"], row["Maker"]): {"Raw Maker": row["Raw Maker"], "Normalized Maker": row["Maker"]}
+        for row in wide
+    }
+    write_csv(
+        OUT / "Maker_Normalization_Map.csv",
+        ["Raw Maker", "Normalized Maker"],
+        sorted(raw_maker_map.values(), key=lambda row: (row["Normalized Maker"], row["Raw Maker"])),
+    )
     write_csv(
         OUT / "Fuel_Type_Dim.csv",
         ["Fuel Type"],
@@ -262,6 +306,7 @@ def main():
     print(
         {
             "rows": len(wide),
+            "source_rows_before_4w_filter": len(all_rows),
             "reported": reported,
             "calculated": calculated,
             "variance": reported - calculated,

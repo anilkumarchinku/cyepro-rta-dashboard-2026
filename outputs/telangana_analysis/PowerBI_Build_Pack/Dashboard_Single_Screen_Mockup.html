@@ -57,6 +57,12 @@
       "filters makers makers makers makers offices offices offices offices matrix matrix matrix matrix";
   }
 
+  .filters,
+  .panel,
+  .kpi {
+    min-width: 0;
+  }
+
   .panel,
   .kpi,
   .filters {
@@ -106,37 +112,9 @@
     flex: 0 0 auto;
   }
 
-  .dataset-toggle {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(112px, 1fr));
-    gap: 4px;
-    padding: 4px;
-    border: 1px solid var(--accent-border);
-    border-radius: 999px;
-    background: #edf5ff;
-  }
-
-  .dataset-toggle button {
-    min-height: 30px;
-    border: 0;
-    border-radius: 999px;
-    background: transparent;
-    color: var(--muted);
-    padding: 5px 10px;
-    font-size: 11px;
-    white-space: nowrap;
-  }
-
-  .dataset-toggle button.active {
-    background: var(--card);
-    color: var(--accent-deep);
-    box-shadow: 0 4px 12px rgba(22, 50, 79, .12);
-  }
-
   .filters {
     grid-area: filters;
     padding: 14px;
-    min-width: 0;
   }
 
   .filters h2,
@@ -171,26 +149,6 @@
 
   .slicer-meta strong {
     color: var(--ink);
-  }
-
-  .checkbox-row {
-    min-height: 42px;
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 8px 10px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: #fbfcfe;
-    color: var(--ink);
-    font-size: 11px;
-    font-weight: 750;
-  }
-
-  .checkbox-row input {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--accent);
   }
 
   .filter-summary {
@@ -337,7 +295,12 @@
   .quality { grid-area: quality; }
   .makers { grid-area: makers; }
   .offices { grid-area: offices; }
-  .matrix { grid-area: matrix; }
+  .matrix {
+    grid-area: matrix;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
 
   .panel {
     padding: 13px 15px;
@@ -527,6 +490,7 @@
     max-width: 280px;
     pointer-events: none;
     opacity: 0;
+    visibility: hidden;
     transform: translate(-50%, -112%);
     background: rgba(22, 50, 79, .96);
     color: #fff;
@@ -541,11 +505,14 @@
 
   .tooltip.show {
     opacity: 1;
+    visibility: visible;
   }
 
   .table-wrap {
+    flex: 1;
+    min-height: 0;
     overflow: auto;
-    max-height: 154px;
+    overscroll-behavior: contain;
   }
 
   table {
@@ -561,6 +528,10 @@
   }
 
   th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--card);
     text-align: left;
     color: var(--muted);
     border-bottom: 1px solid var(--line);
@@ -586,28 +557,65 @@
   }
 
   @media (max-width: 1160px) {
+    .shell {
+      width: 100%;
+      padding: 14px;
+    }
+
     .dashboard {
-      grid-template-columns: repeat(6, minmax(0, 1fr));
+      min-height: auto;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
       grid-template-areas:
-        "title title title title title title"
-        "insight insight insight insight insight insight"
-        "filters filters filters filters filters filters"
-        "kpi1 kpi1 kpi2 kpi2 kpi3 kpi3"
-        "trend trend trend trend fuel fuel"
-        "quality quality quality offices offices offices"
-        "makers makers makers matrix matrix matrix";
+        "title title title title title title title title"
+        "insight insight insight insight insight kpi1 kpi1 kpi1"
+        "filters filters filters filters filters kpi2 kpi2 kpi2"
+        "filters filters filters filters filters kpi3 kpi3 kpi3"
+        "trend trend trend trend trend fuel fuel fuel"
+        "makers makers makers makers offices offices offices offices"
+        "matrix matrix matrix matrix quality quality quality quality";
     }
 
     .slicer-grid {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .line-chart {
+      height: 170px;
+    }
+
+    .donut-wrap {
+      grid-template-columns: 120px minmax(0, 1fr);
+    }
+
+    .donut {
+      width: 120px;
+      height: 120px;
+    }
+
+    .donut:after {
+      inset: 30px;
+    }
+
+    .matrix {
+      max-height: 360px;
+    }
+
   }
 
   @media (max-width: 820px) {
-    .shell { padding: 0; }
+    body {
+      background: var(--bg);
+    }
+
+    .shell {
+      padding: 0;
+    }
 
     .dashboard {
       box-shadow: none;
+      border-radius: 0;
+      padding: 14px;
+      gap: 12px;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-template-areas:
         "title title"
@@ -622,20 +630,42 @@
         "matrix matrix";
     }
 
-    .title { display: block; }
+    .title {
+      display: grid;
+      gap: 10px;
+      align-items: start;
+    }
+
     .title-actions {
-      margin-top: 10px;
       align-items: flex-start;
       flex-wrap: wrap;
     }
-    .badge { display: inline-block; }
+
+    .badge {
+      display: inline-block;
+    }
 
     .slicer-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    select,
+    button,
+    input[type="file"] {
+      min-height: 46px;
+      font-size: 12px;
     }
 
     .mini-row {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .kpi {
+      min-height: 96px;
+    }
+
+    .kpi-value {
+      font-size: 30px;
     }
 
     .donut-wrap {
@@ -644,12 +674,30 @@
     }
 
     .legend { width: 100%; }
+
+    .bar-list {
+      max-height: 260px;
+    }
+
+    .matrix {
+      max-height: 420px;
+    }
   }
 
   @media (max-width: 560px) {
+    h1 {
+      font-size: 22px;
+      line-height: 1.14;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
     .dashboard {
       min-height: 100vh;
-      padding: 14px;
+      padding: 12px;
       grid-template-columns: 1fr;
       grid-template-areas:
         "title"
@@ -666,28 +714,95 @@
         "matrix";
     }
 
+    .matrix {
+      max-height: 440px;
+    }
+
+    .title-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      width: 100%;
+    }
+
+    .badge {
+      justify-self: start;
+    }
+
     .slicer-grid {
       grid-template-columns: 1fr;
     }
 
-    .bar-row {
+    .panel,
+    .filters,
+    .kpi {
+      border-radius: 12px;
+    }
+
+    .panel,
+    .filters {
+      padding: 12px;
+    }
+
+    .mini-row {
       grid-template-columns: 1fr;
+    }
+
+    .mini-value {
+      font-size: 12px;
+    }
+
+    .kpi {
+      min-height: 84px;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+    }
+
+    .chart-head {
+      align-items: start;
+    }
+
+    .hint {
+      max-width: 42%;
+      line-height: 1.25;
+    }
+
+    .bar-row {
+      grid-template-columns: minmax(0, 1fr) minmax(82px, 1fr) max-content;
       gap: 5px;
+      font-size: 10px;
     }
 
     .makers .bar-list,
     .offices .bar-list {
-      max-height: 360px;
+      max-height: 300px;
     }
 
-    .value { text-align: left; }
+    .value {
+      text-align: right;
+    }
 
     .quality-grid {
       grid-template-columns: 1fr;
     }
 
+    .donut {
+      width: 138px;
+      height: 138px;
+    }
+
+    .donut:after {
+      inset: 34px;
+    }
+
     .line-chart {
       height: 170px;
+    }
+
+    .month-values {
+      font-size: 9px;
+      gap: 2px;
     }
 
     table {
@@ -697,6 +812,21 @@
     th,
     td {
       padding: 6px 3px;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .bar-row {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+
+    .value {
+      text-align: left;
+    }
+
+    .quality-card {
+      padding: 9px;
     }
   }
 </style>
@@ -710,10 +840,6 @@
         <div class="subtitle" id="subtitle">Loading source data...</div>
       </div>
       <div class="title-actions">
-        <div class="dataset-toggle" aria-label="Switch dashboard data source">
-          <button id="currentDataBtn" type="button" class="active">all.xlsx</button>
-          <button id="previousDataBtn" type="button">Previous</button>
-        </div>
         <div class="badge">Interactive Preview</div>
       </div>
     </header>
@@ -725,7 +851,6 @@
         <div class="slicer-box"><label>Maker<select id="makerFilter"><option value="">All</option></select></label></div>
         <div class="slicer-box"><label>Office<select id="officeFilter"><option value="">All</option></select></label></div>
         <div class="slicer-box"><label>Office Code<select id="officeCodeFilter"><option value="">All</option></select></label></div>
-        <div class="slicer-box"><label>Brand View<span class="checkbox-row"><input id="only4wFilter" type="checkbox" checked /> Only 4W brands</span></label></div>
         <div class="slicer-box"><label>Upload Table<input id="tableUpload" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" /></label><div class="file-note" id="fileStatus">Default Telangana data loaded.</div></div>
         <label>Action<button id="resetFilters" type="button">Reset</button></label>
       </div>
@@ -865,7 +990,7 @@ const fourWheelerMakers = new Set([
   "RENAULT",
   "RENAULT NISSAN",
   "ROLLS ROYCE",
-  "SKODA VOLKSWAGEN",
+  "SKODA AUTO VOLKSWAGEN",
   "STELLANTIS",
   "TATA MOTORS",
   "TATA MOTORS PASSENGER VEHICLES",
@@ -876,21 +1001,12 @@ const fourWheelerMakers = new Set([
   "VOLKSWAGEN",
   "VOLVO",
 ]);
-const builtInDatasets = {
-  current: {
-    label: "Current all.xlsx data",
-    file: "TELANGANA_All_XLSX_PowerBI_Wide.csv",
-    buttonId: "currentDataBtn",
-  },
-  previous: {
-    label: "Previous TELANGANA data",
-    file: "TELANGANA_Previous_PowerBI_Wide.csv",
-    buttonId: "previousDataBtn",
-  },
+const defaultDataset = {
+  label: "all.xlsx data",
+  file: "TELANGANA_PowerBI_Wide.csv",
 };
 let wideRows = [];
 let datasetLabel = "Telangana source file";
-let activeDatasetKey = "current";
 
 const el = (id) => document.getElementById(id);
 const fmt = (value) => Math.round(Number(value || 0)).toLocaleString("en-IN");
@@ -1043,7 +1159,7 @@ function activeFilters() {
     maker: el("makerFilter").value,
     office: el("officeFilter").value,
     officeCode: el("officeCodeFilter").value,
-    only4w: el("only4wFilter").checked,
+    only4w: true,
   };
 }
 
@@ -1077,6 +1193,21 @@ function groupBy(rows, key, valueKey = "Total") {
   return [...map.values()].sort((a, b) => b.total - a.total);
 }
 
+function groupOffices(rows, valueKey = "Total") {
+  const map = new Map();
+  rows.forEach((row) => {
+    const office = row.Office || "Unknown Office";
+    const code = row["Office Code"] || "All";
+    const key = `${office}||${code}`;
+    const label = code && code !== "ALL" && code !== "All" ? `${office} (${code})` : office;
+    const current = map.get(key) || { label, total: 0, rows: 0 };
+    current.total += numeric(row, valueKey);
+    current.rows += 1;
+    map.set(key, current);
+  });
+  return [...map.values()].sort((a, b) => b.total - a.total);
+}
+
 function isAggregateOffice(row) {
   return row.Office === aggregateOffice;
 }
@@ -1106,13 +1237,20 @@ function filterOptions(key, filterKey) {
     }));
 }
 
+function optionDisplayText(key, value) {
+  if (key !== "Office" || !value) return displayName(value);
+  const row = availableRowsIgnoring("office").find((item) => item.Office === value);
+  const code = row && row["Office Code"];
+  return code && code !== "ALL" && code !== "All" ? `${displayName(value)} (${code})` : displayName(value);
+}
+
 function populateFilter(id, key, filterKey) {
   const select = el(id);
   const current = select.value;
   const options = filterOptions(key, filterKey);
   const allRegistrations = effectiveRegistrations(contextRowsFor(filterKey, ""));
   select.innerHTML = `<option value="">All (${fmt(allRegistrations)})</option>` + options
-    .map(({ value, registrations }) => `<option value="${escapeHtml(value)}">${escapeHtml(displayName(value))} (${fmt(registrations)})</option>`)
+    .map(({ value, registrations }) => `<option value="${escapeHtml(value)}">${escapeHtml(optionDisplayText(key, value))} (${fmt(registrations)})</option>`)
     .join("");
   if (options.some((option) => option.value === current)) select.value = current;
   else select.value = "";
@@ -1290,7 +1428,7 @@ function updateDashboard() {
   const makerItems = groupBy(rows, "Maker", visualMetric);
   const fuelItems = groupBy(rows, "Fuel Type", visualMetric);
   const rankedOfficeRows = officeRankingRows(rows);
-  const officeItems = groupBy(rankedOfficeRows, "Office", visualMetric);
+  const officeItems = groupOffices(rankedOfficeRows, visualMetric);
   const monthly = months.map((month) => ({ month, value: sum(rows, month) }));
 
   const realOfficeCount = new Set(rows.filter((r) => !isAggregateOffice(r)).map((r) => r.Office)).size;
@@ -1340,13 +1478,6 @@ function updateDashboard() {
 
 function clearFilters() {
   ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter"].forEach((id) => el(id).value = "");
-  el("only4wFilter").checked = true;
-}
-
-function setDatasetButtons(activeKey) {
-  Object.entries(builtInDatasets).forEach(([key, dataset]) => {
-    el(dataset.buttonId).classList.toggle("active", key === activeKey);
-  });
 }
 
 function loadDataset(rawRows, label) {
@@ -1358,17 +1489,13 @@ function loadDataset(rawRows, label) {
   el("fileStatus").textContent = `${datasetLabel}: ${fmt(wideRows.length)} rows loaded.`;
 }
 
-async function loadBuiltInDataset(key) {
-  const dataset = builtInDatasets[key];
-  if (!dataset) return;
-  el("fileStatus").textContent = `Loading ${dataset.label}...`;
-  const csv = await fetch(`${dataset.file}?v=${Date.now()}`, { cache: "no-store" }).then((res) => {
-    if (!res.ok) throw new Error(`Could not load ${dataset.file}`);
+async function loadDefaultDataset() {
+  el("fileStatus").textContent = `Loading ${defaultDataset.label}...`;
+  const csv = await fetch(`${defaultDataset.file}?v=${Date.now()}`, { cache: "no-store" }).then((res) => {
+    if (!res.ok) throw new Error(`Could not load ${defaultDataset.file}`);
     return res.text();
   });
-  activeDatasetKey = key;
-  setDatasetButtons(key);
-  loadDataset(parseCSV(csv), dataset.label);
+  loadDataset(parseCSV(csv), defaultDataset.label);
   el("tableUpload").value = "";
 }
 
@@ -1399,8 +1526,6 @@ async function handleUpload(event) {
   try {
     el("fileStatus").textContent = `Loading ${file.name}...`;
     const rows = await parseUploadedFile(file);
-    activeDatasetKey = "custom";
-    setDatasetButtons("");
     loadDataset(rows, file.name);
   } catch (error) {
     el("fileStatus").textContent = `Upload failed: ${error.message}`;
@@ -1409,8 +1534,8 @@ async function handleUpload(event) {
 
 async function init() {
   try {
-    await loadBuiltInDataset("current");
-    ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter", "only4wFilter"].forEach((id) => {
+    await loadDefaultDataset();
+    ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter"].forEach((id) => {
       el(id).addEventListener("change", updateDashboard);
     });
     el("resetFilters").addEventListener("click", () => {
@@ -1418,16 +1543,6 @@ async function init() {
       updateDashboard();
     });
     el("tableUpload").addEventListener("change", handleUpload);
-    Object.entries(builtInDatasets).forEach(([key, dataset]) => {
-      el(dataset.buttonId).addEventListener("click", async () => {
-        if (activeDatasetKey === key) return;
-        try {
-          await loadBuiltInDataset(key);
-        } catch (error) {
-          el("fileStatus").textContent = `Dataset switch failed: ${error.message}`;
-        }
-      });
-    });
   } catch (error) {
     el("readFirst").textContent = `Could not load dashboard data: ${error.message}. Open this preview through the local server, not directly as a file.`;
   }
