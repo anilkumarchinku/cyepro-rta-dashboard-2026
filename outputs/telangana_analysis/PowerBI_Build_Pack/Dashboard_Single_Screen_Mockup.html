@@ -173,6 +173,26 @@
     color: var(--ink);
   }
 
+  .checkbox-row {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fbfcfe;
+    color: var(--ink);
+    font-size: 11px;
+    font-weight: 750;
+  }
+
+  .checkbox-row input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+  }
+
   .filter-summary {
     margin-top: 10px;
     padding: 10px;
@@ -705,6 +725,7 @@
         <div class="slicer-box"><label>Maker<select id="makerFilter"><option value="">All</option></select></label></div>
         <div class="slicer-box"><label>Office<select id="officeFilter"><option value="">All</option></select></label></div>
         <div class="slicer-box"><label>Office Code<select id="officeCodeFilter"><option value="">All</option></select></label></div>
+        <div class="slicer-box"><label>Brand View<span class="checkbox-row"><input id="hide4wFilter" type="checkbox" checked /> Hide 4W brands</span></label></div>
         <div class="slicer-box"><label>Upload Table<input id="tableUpload" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" /></label><div class="file-note" id="fileStatus">Default Telangana data loaded.</div></div>
         <label>Action<button id="resetFilters" type="button">Reset</button></label>
       </div>
@@ -821,6 +842,40 @@ const fuelColors = {
   "default": { accent: "#2f80ed", soft: "#dbeafe", deep: "#1f5ea8", border: "#bfdbfe" },
 };
 const aggregateOffice = "All Vahan4 Running Office";
+const fourWheelerMakers = new Set([
+  "AUDI",
+  "BENTLEY",
+  "BMW",
+  "BYD",
+  "FERRARI",
+  "FORCE MOTORS",
+  "HONDA CARS",
+  "HYUNDAI",
+  "ISUZU",
+  "JAGUAR LAND ROVER",
+  "KIA",
+  "LEXUS",
+  "MAHINDRA & MAHINDRA",
+  "MAHINDRA ELECTRIC",
+  "MARUTI SUZUKI",
+  "MERCEDES-BENZ",
+  "MG MOTOR",
+  "NISSAN",
+  "PORSCHE",
+  "RENAULT",
+  "RENAULT NISSAN",
+  "ROLLS ROYCE",
+  "SKODA VOLKSWAGEN",
+  "STELLANTIS",
+  "TATA MOTORS",
+  "TATA MOTORS PASSENGER VEHICLES",
+  "TATA PASSENGER ELECTRIC MOBILITY",
+  "TESLA",
+  "TOYOTA",
+  "VINFAST",
+  "VOLKSWAGEN",
+  "VOLVO",
+]);
 const builtInDatasets = {
   current: {
     label: "Current all.xlsx data",
@@ -988,6 +1043,7 @@ function activeFilters() {
     maker: el("makerFilter").value,
     office: el("officeFilter").value,
     officeCode: el("officeCodeFilter").value,
+    hide4w: el("hide4wFilter").checked,
   };
 }
 
@@ -997,6 +1053,7 @@ function filteredRows() {
 
 function rowsMatching(f) {
   return wideRows.filter((row) =>
+    (!f.hide4w || !fourWheelerMakers.has(row.Maker)) &&
     (!f.fuel || row["Fuel Type"] === f.fuel) &&
     (!f.maker || row.Maker === f.maker) &&
     (!f.office || row.Office === f.office) &&
@@ -1041,7 +1098,7 @@ function contextRowsFor(filterKey, value) {
 }
 
 function filterOptions(key, filterKey) {
-  return [...new Set(wideRows.map((row) => row[key]).filter(Boolean))]
+  return [...new Set(availableRowsIgnoring(filterKey).map((row) => row[key]).filter(Boolean))]
     .sort((a, b) => String(a).localeCompare(String(b)))
     .map((value) => ({
       value,
@@ -1185,6 +1242,7 @@ function renderFilterSummary(rows, visualTotal) {
   const active = filters
     .map(([key, label, selectId]) => activeFilters()[key] ? `${label}: ${selectedLabel(selectId)}` : "")
     .filter(Boolean);
+  if (f.hide4w) active.unshift("4W brands hidden");
   el("filterSummary").textContent = active.length
     ? `Active filters: ${active.join(" | ")}. Showing ${fmt(rows.length)} matching data rows.`
     : `Showing all Telangana registrations: ${fmt(rows.length)} data rows.`;
@@ -1254,9 +1312,13 @@ function updateDashboard() {
   el("topFuel").textContent = topFuel ? `${displayName(topFuel.label)}: ${pct(visualTotal ? topFuel.total / visualTotal : 0)}` : "-";
   el("topOffice").textContent = topOffice ? `${displayName(topOffice.label)}: ${fmt(topOffice.total)}` : "-";
 
-  const selectedText = Object.values(activeFilters()).filter(Boolean).map(displayName).join(" + ") || "all Telangana";
+  const currentFilters = activeFilters();
+  const selectedText = [currentFilters.fuel, currentFilters.maker, currentFilters.office, currentFilters.officeCode]
+    .filter(Boolean)
+    .map(displayName)
+    .join(" + ") || (currentFilters.hide4w ? "Telangana without 4W brands" : "all Telangana");
   el("readFirst").textContent = rows.length
-    ? `For ${selectedText}, reported total is ${fmt(reported)} and Jan-Jun monthly values sum to ${fmt(calculated)}. The source gap is ${fmt(variance)}, with ${fmt(mismatch)} rows needing review.${aggregateRows && !activeFilters().office && !activeFilters().officeCode ? " Office rankings exclude the state aggregate source." : ""}`
+    ? `For ${selectedText}, reported total is ${fmt(reported)} and Jan-Jun monthly values sum to ${fmt(calculated)}. The source gap is ${fmt(variance)}, with ${fmt(mismatch)} rows needing review.${currentFilters.hide4w ? " Four-wheeler brands are hidden." : ""}${aggregateRows && !currentFilters.office && !currentFilters.officeCode ? " Office rankings exclude the state aggregate source." : ""}`
     : "No rows match the current filter combination. Use Reset or choose another available slicer value.";
   el("trendHint").textContent = `Peak: ${monthly.reduce((a, b) => a.value > b.value ? a : b).month} ${fmt(Math.max(...monthly.map((m) => m.value)))}`;
   el("fuelHint").textContent = topFuel ? `${displayName(topFuel.label)} leads` : "No data";
@@ -1278,6 +1340,7 @@ function updateDashboard() {
 
 function clearFilters() {
   ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter"].forEach((id) => el(id).value = "");
+  el("hide4wFilter").checked = true;
 }
 
 function setDatasetButtons(activeKey) {
@@ -1347,7 +1410,7 @@ async function handleUpload(event) {
 async function init() {
   try {
     await loadBuiltInDataset("current");
-    ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter"].forEach((id) => {
+    ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter", "hide4wFilter"].forEach((id) => {
       el(id).addEventListener("change", updateDashboard);
     });
     el("resetFilters").addEventListener("click", () => {
