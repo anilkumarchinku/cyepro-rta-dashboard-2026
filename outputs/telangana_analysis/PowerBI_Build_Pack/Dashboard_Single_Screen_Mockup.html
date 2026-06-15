@@ -99,6 +99,40 @@
     font-weight: 700;
   }
 
+  .title-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+  }
+
+  .dataset-toggle {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(112px, 1fr));
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--accent-border);
+    border-radius: 999px;
+    background: #edf5ff;
+  }
+
+  .dataset-toggle button {
+    min-height: 30px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    padding: 5px 10px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .dataset-toggle button.active {
+    background: var(--card);
+    color: var(--accent-deep);
+    box-shadow: 0 4px 12px rgba(22, 50, 79, .12);
+  }
+
   .filters {
     grid-area: filters;
     padding: 14px;
@@ -401,10 +435,10 @@
 
   .bar-row {
     display: grid;
-    grid-template-columns: minmax(92px, 1.1fr) minmax(120px, 2fr) 70px;
-    gap: 10px;
+    grid-template-columns: minmax(96px, 1fr) minmax(96px, 1.4fr) minmax(74px, max-content);
+    gap: 8px;
     align-items: center;
-    font-size: 11px;
+    font-size: 10.5px;
     color: var(--muted);
     cursor: default;
   }
@@ -569,7 +603,12 @@
     }
 
     .title { display: block; }
-    .badge { display: inline-block; margin-top: 8px; }
+    .title-actions {
+      margin-top: 10px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .badge { display: inline-block; }
 
     .slicer-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -644,13 +683,19 @@
 </head>
 <body>
 <main class="shell">
-  <section class="dashboard" aria-label="Telangana car registrations dashboard preview">
+  <section class="dashboard" aria-label="Telangana vehicle registrations dashboard preview">
     <header class="title">
       <div>
-        <h1>Telangana Car Registrations Dashboard | Jan-Jun 2026</h1>
+        <h1>Telangana Vehicle Registrations Dashboard | Jan-Jun 2026</h1>
         <div class="subtitle" id="subtitle">Loading source data...</div>
       </div>
-      <div class="badge">Interactive Preview</div>
+      <div class="title-actions">
+        <div class="dataset-toggle" aria-label="Switch dashboard data source">
+          <button id="currentDataBtn" type="button" class="active">all.xlsx</button>
+          <button id="previousDataBtn" type="button">Previous</button>
+        </div>
+        <div class="badge">Interactive Preview</div>
+      </div>
     </header>
 
     <aside class="filters" aria-label="Dashboard filters">
@@ -771,12 +816,26 @@ const fuelColors = {
   "Petrol": { accent: "#2f80ed", soft: "#dbeafe", deep: "#1f5ea8", border: "#bfdbfe" },
   "Petrol CNG": { accent: "#27ae60", soft: "#dcfce7", deep: "#15803d", border: "#bbf7d0" },
   "Diesel": { accent: "#f59e0b", soft: "#fef3c7", deep: "#b45309", border: "#fde68a" },
+  "Electric": { accent: "#0ea5e9", soft: "#e0f2fe", deep: "#0369a1", border: "#bae6fd" },
   "Diesel Hybrid": { accent: "#9b51e0", soft: "#f3e8ff", deep: "#6b21a8", border: "#e9d5ff" },
   "default": { accent: "#2f80ed", soft: "#dbeafe", deep: "#1f5ea8", border: "#bfdbfe" },
 };
 const aggregateOffice = "All Vahan4 Running Office";
+const builtInDatasets = {
+  current: {
+    label: "Current all.xlsx data",
+    file: "TELANGANA_All_XLSX_PowerBI_Wide.csv",
+    buttonId: "currentDataBtn",
+  },
+  previous: {
+    label: "Previous TELANGANA data",
+    file: "TELANGANA_Previous_PowerBI_Wide.csv",
+    buttonId: "previousDataBtn",
+  },
+};
 let wideRows = [];
 let datasetLabel = "Telangana source file";
+let activeDatasetKey = "current";
 
 const el = (id) => document.getElementById(id);
 const fmt = (value) => Math.round(Number(value || 0)).toLocaleString("en-IN");
@@ -1178,7 +1237,7 @@ function updateDashboard() {
 
   const realOfficeCount = new Set(rows.filter((r) => !isAggregateOffice(r)).map((r) => r.Office)).size;
   const aggregateRows = rows.filter(isAggregateOffice).length;
-  el("subtitle").textContent = `VAHAN all-fuels passenger car registrations | ${fmt(rows.length)} selected rows | ${fmt(new Set(rows.map((r) => r.Maker)).size)} makers | ${fmt(realOfficeCount)} real offices${aggregateRows ? ` | ${fmt(aggregateRows)} aggregate rows` : ""}`;
+  el("subtitle").textContent = `VAHAN all-fuels vehicle registrations | ${fmt(rows.length)} selected rows | ${fmt(new Set(rows.map((r) => r.Maker)).size)} makers | ${fmt(realOfficeCount)} offices${aggregateRows ? ` | ${fmt(aggregateRows)} aggregate rows` : ""}`;
   el("reportedTotal").textContent = fmt(reported);
   el("monthlyTotal").textContent = fmt(calculated);
   el("sourceGap").textContent = fmt(variance);
@@ -1221,6 +1280,12 @@ function clearFilters() {
   ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter"].forEach((id) => el(id).value = "");
 }
 
+function setDatasetButtons(activeKey) {
+  Object.entries(builtInDatasets).forEach(([key, dataset]) => {
+    el(dataset.buttonId).classList.toggle("active", key === activeKey);
+  });
+}
+
 function loadDataset(rawRows, label) {
   datasetLabel = label || "Uploaded table";
   wideRows = normalizeRows(rawRows);
@@ -1228,6 +1293,20 @@ function loadDataset(rawRows, label) {
   populateFilters();
   updateDashboard();
   el("fileStatus").textContent = `${datasetLabel}: ${fmt(wideRows.length)} rows loaded.`;
+}
+
+async function loadBuiltInDataset(key) {
+  const dataset = builtInDatasets[key];
+  if (!dataset) return;
+  el("fileStatus").textContent = `Loading ${dataset.label}...`;
+  const csv = await fetch(dataset.file).then((res) => {
+    if (!res.ok) throw new Error(`Could not load ${dataset.file}`);
+    return res.text();
+  });
+  activeDatasetKey = key;
+  setDatasetButtons(key);
+  loadDataset(parseCSV(csv), dataset.label);
+  el("tableUpload").value = "";
 }
 
 async function parseUploadedFile(file) {
@@ -1257,6 +1336,8 @@ async function handleUpload(event) {
   try {
     el("fileStatus").textContent = `Loading ${file.name}...`;
     const rows = await parseUploadedFile(file);
+    activeDatasetKey = "custom";
+    setDatasetButtons("");
     loadDataset(rows, file.name);
   } catch (error) {
     el("fileStatus").textContent = `Upload failed: ${error.message}`;
@@ -1265,11 +1346,7 @@ async function handleUpload(event) {
 
 async function init() {
   try {
-    const csv = await fetch("TELANGANA_PowerBI_Wide.csv").then((res) => {
-      if (!res.ok) throw new Error("Could not load CSV");
-      return res.text();
-    });
-    loadDataset(parseCSV(csv), "Default Telangana data");
+    await loadBuiltInDataset("current");
     ["fuelFilter", "makerFilter", "officeFilter", "officeCodeFilter"].forEach((id) => {
       el(id).addEventListener("change", updateDashboard);
     });
@@ -1278,6 +1355,16 @@ async function init() {
       updateDashboard();
     });
     el("tableUpload").addEventListener("change", handleUpload);
+    Object.entries(builtInDatasets).forEach(([key, dataset]) => {
+      el(dataset.buttonId).addEventListener("click", async () => {
+        if (activeDatasetKey === key) return;
+        try {
+          await loadBuiltInDataset(key);
+        } catch (error) {
+          el("fileStatus").textContent = `Dataset switch failed: ${error.message}`;
+        }
+      });
+    });
   } catch (error) {
     el("readFirst").textContent = `Could not load dashboard data: ${error.message}. Open this preview through the local server, not directly as a file.`;
   }
