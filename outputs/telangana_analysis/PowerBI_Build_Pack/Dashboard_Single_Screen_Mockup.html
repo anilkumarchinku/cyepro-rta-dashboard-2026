@@ -1299,7 +1299,7 @@ async function loadBuiltInDataset(key) {
   const dataset = builtInDatasets[key];
   if (!dataset) return;
   el("fileStatus").textContent = `Loading ${dataset.label}...`;
-  const csv = await fetch(dataset.file).then((res) => {
+  const csv = await fetch(`${dataset.file}?v=${Date.now()}`, { cache: "no-store" }).then((res) => {
     if (!res.ok) throw new Error(`Could not load ${dataset.file}`);
     return res.text();
   });
